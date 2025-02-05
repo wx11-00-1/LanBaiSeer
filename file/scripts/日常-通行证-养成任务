@@ -1,0 +1,18 @@
+(async () => {
+  let bag1 = WxFightHandler.Utils.GetBag1().map(pet => pet.catchTime);
+  let bag2 = WxFightHandler.Utils.GetBag2().map(pet => pet.catchTime);
+  let pets = await WxFightHandler.Utils.GetStoragePets();
+  // 从仓库取出一只 皮皮
+  pets = pets.filter(pet => pet.id===10);
+  if (pets.length) {
+    let ct = pets[0].catchTime;
+    await WxFightHandler.Utils.SetPetBag([ct]);
+    // 性格
+    WxFightHandler.Utils.Send(2326,ct,300070);
+    await WxFightHandler.Utils.Delay(500);
+    // 恢复背包
+    WxFightHandler.Utils.SetPetBag(bag1,bag2);
+    // 领奖
+    WxFightHandler.Utils.Send(41916,1,3);
+  }
+})();

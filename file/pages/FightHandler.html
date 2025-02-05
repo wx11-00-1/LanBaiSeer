@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对战助手</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #1685a9, #21a675);
+    }
+
+    #fileList {
+      width: 200px;
+      float: left;
+      padding: 10px;
+      height: 92vh;
+      overflow-y: auto;
+    }
+
+    #fileContent {
+      margin-left: 200px;
+      margin-top: 60px;
+      padding: 10px;
+      margin-bottom: 6px;
+    }
+
+    #contentArea, input {
+      background-color: #fffbf0;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    li:hover {
+      background-color: #3de1ad;
+    }
+
+    button {
+      background-color: transparent; /* 透明背景 */
+      border: 1px solid #cca4e3; /* 边框颜色 */
+      border-radius: 5px; /* 圆角 */
+      padding: 5px 10px; /* 内边距 */
+    }
+
+    button:hover {
+      background-color: #3de1ad;
+    }
+
+    ::-webkit-scrollbar {
+      display: none; /* 隐藏滚动条 */
+    }
+  </style>
+</head>
+
+<body>
+  <div id="fileList">
+    <ul id="fileListItems"></ul>
+  </div>
+  <div id="fileContent">
+    <textarea id="contentArea" rows="12" cols="80" spellcheck="false"></textarea>
+  </div>
+  <input type="text" id="newFileName" placeholder="名称"><br><br>
+  <button id="runButton">运行</button>
+  <button id="saveButton">保存</button>
+  <button id="refreshButton">刷新</button>
+  <button id="searchButton">搜索</button><br><br>
+  <button id="stopFightingButton">停止自动出招</button><br><br>
+  <button id="hideFightPanelButton">隐藏战斗界面</button>
+  <button id="showFightPanelButton">显示战斗界面</button>
+  <br><br><br>
+  <button id="deleteButton">删除</button>
+  <h6>治疗</h6>
+  <button id="cureAllButton">所有</button>
+  <button id="cure20hpButton">20hp+10pp</button>
+  <button id="stopAutoCureButton">停止自动治疗</button>
+  <button id="startAutoCureButton">开始自动治疗</button>
+  <h6>对战道具</h6>
+  <button id="item170Button">170</button>
+  <button id="item1503Button">150+3</button><br><br>
+  <button id="item10Button">10pp</button>
+  <button id="item20Button">20pp</button><br><br>
+  <button id="item250Button">250hp</button>
+  <button id="item200Button">200hp</button>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    // 获取网页元素
+    const fileListItems = document.getElementById('fileListItems');
+    const contentArea = document.getElementById('contentArea');
+    const fileNameInput = document.getElementById('newFileName');
+    const runButton = document.getElementById('runButton');
+    const saveButton = document.getElementById('saveButton');
+    const searchButton = document.getElementById('searchButton');
+    const refreshButton = document.getElementById('refreshButton');
+    const stopFightingButton = document.getElementById('stopFightingButton');
+    const deleteButton = document.getElementById('deleteButton');
+    const hideFightPanelButton = document.getElementById('hideFightPanelButton');
+    const showFightPanelButton = document.getElementById('showFightPanelButton');
+    // 治疗
+    const cureAllButton = document.getElementById('cureAllButton');
+    const cure20hpButton = document.getElementById('cure20hpButton');
+    const stopAutoCureButton = document.getElementById('stopAutoCureButton');
+    const startAutoCureButton = document.getElementById('startAutoCureButton');
+    // 道具
+    const item170Button = document.getElementById('item170Button');
+    const item1503Button = document.getElementById('item1503Button');
+    const item10Button = document.getElementById('item10Button');
+    const item20Button = document.getElementById('item20Button');
+    const item250Button = document.getElementById('item250Button');
+    const item200Button = document.getElementById('item200Button');
+
+    const fs = require('fs');
+    const path = require('path');
+
+    document.body.style.overflow = 'hidden';
+
+    const currentPath = process.platform === 'darwin' ? path.resolve(__dirname, '..', '..') : process.cwd();
+    const { cmdExecJs } = require(path.join(currentPath, 'file', 'utils','constants'));
+
+    // 文件夹路径
+    const folderPath = path.join(currentPath, 'file', 'scripts');
+
+    // 读取文件夹
+    let fileItems = [];
+    let refreshList = () => {
+      fileItems = [];
+      fileListItems.innerHTML = '';
+      fs.readdir(folderPath, (err, files) => {
+        if (err) {
+          return;
+        }
+
+        // 遍历文件夹中的文件
+        for (const file of files) {
+          try {
+            const content = fs.readFileSync(path.join(folderPath, file), 'utf8');
+            const listItem = document.createElement('li');
+            listItem.textContent = file;
+            fileItems[file] = content;
+            listItem.addEventListener('click', () => {
+              fileNameInput.value = file;
+              contentArea.value = content;
+            });
+            fileListItems.appendChild(listItem);
+          } catch (error) {
+            console.error(`读取${file}时出错`);
+          }
+        }
+      });
+    }
+    refreshList();
+
+    // 运行
+    runButton.addEventListener('click', () => {
+      runButton.disabled = true;
+      setTimeout(() => {
+        runButton.disabled = false;
+      }, 1000);
+      ipcRenderer.send(cmdExecJs, contentArea.value);
+    });
+    // 保存
+    saveButton.addEventListener('click', () => {
+      const fileName = fileNameInput.value;
+      const content = contentArea.value;
+      fileItems[fileName] = content;
+      fs.writeFile(path.join(folderPath, fileName), content, (err) => {
+        if (err) {
+          alert('保存失败');
+        }
+      });
+      refreshList();
+    });
+    // 刷新
+    refreshButton.addEventListener('click', () => refreshList());
+    // 搜索
+    searchButton.addEventListener('click', () => {
+      const searchText = fileNameInput.value;
+      fileListItems.innerHTML = '';
+      for (const fileName in fileItems) {
+        if (fileName.includes(searchText)) {
+          const listItem = document.createElement('li');
+          listItem.textContent = fileName;
+          listItem.addEventListener('click', () => {
+            fileNameInput.value = fileName;
+            contentArea.value = fileItems[fileName];
+          });
+          fileListItems.appendChild(listItem);
+        }
+      }
+    });
+    // 停止自动出招
+    stopFightingButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.StopAutoFight()'));
+    // 删除
+    deleteButton.addEventListener('click', () => {
+      const fileName = fileNameInput.value;
+      fs.unlink(path.join(folderPath, fileName), (err) => {
+        if (err) {
+          alert('删除失败');
+        }
+      });
+      refreshList();
+    });
+
+    // 对战界面
+    hideFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'document.Client.WxSetIsHidePetFight(true)'));
+    showFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'document.Client.WxSetIsHidePetFight(false)'));
+
+    // 治疗
+    cureAllButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.CurePetAll()'));
+    cure20hpButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.CurePet20HP()'));
+    stopAutoCureButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsAutoCure(false)'));
+    startAutoCureButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsAutoCure(true)'));
+    // 道具
+    item170Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300749)'));
+    item1503Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300701)'));
+    item10Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem10PP()'));
+    item20Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300018)'));
+    item250Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300079)'));
+    item200Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300157)'));
+  </script>
+</body>
+
+</html>

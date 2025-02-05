@@ -1,0 +1,14 @@
+WxFightHandler.OnFirstRound = () => { WxFightHandler.Utils.UseSkill(0); };
+WxFightHandler.OnUseSkill = async (mySkillInfo) => {
+  await WxFightHandler.Utils.Delay(200);
+  if (mySkillInfo.remainHP != 0) {
+    WxFightHandler.Utils.UseSkill(0);
+  }
+  else {
+    WxFightHandler.Utils.ChangePetByID([]);
+  }
+};
+WxFightHandler.OnChangePet = () => { WxFightHandler.Utils.UseSkill(0); };
+WxFightHandler.OnFightOver = () => { WxFightHandler.Utils.StopAutoFight(); };
+
+WxFightHandler.Utils.LowHP();

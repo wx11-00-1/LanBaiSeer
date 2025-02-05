@@ -1,0 +1,47 @@
+{
+  "name": "lan-bai-seer",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "electron": "^11.5.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "productName": "蓝白Seer",
+    "appId": "lan-bai-seer",
+    "win": {
+      "target": "nsis",
+      "icon": "file/pic/favicon.ico"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!file/**/*",
+      "!.git/**/*",
+      "!.gitignore",
+      "!README.md",
+      "!LICENSE",
+      "!*.json",
+      "!build/**/*",
+      "!node_modules/**/*"
+    ],
+    "extraFiles": [
+      {
+        "from": "file",
+        "to": "file",
+        "filter": [
+          "**/*",
+          "!**/fd/**"
+        ]
+      }
+    ]
+  }
+}

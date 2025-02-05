@@ -1,0 +1,28 @@
+WxFightHandler.OnFirstRound = () => {
+  WxFightHandler.YQYQ = 36354;
+  WxFightHandler.BHLH = 36353;
+  WxFightHandler.UseSkillBHLH = true;
+  WxFightHandler.Utils.UseSkill(WxFightHandler.YQYQ);
+};
+
+WxFightHandler.OnUseSkill = async (mySkillInfo) => {
+  await WxFightHandler.Utils.Delay(200); 
+  if (mySkillInfo.remainHP === 0) {
+    console.log('GG!');
+    return;
+  }
+  for (var skill of mySkillInfo.skillList) {
+    if (skill[0] === WxFightHandler.YQYQ) {
+      if (skill[1] === 0) {
+        WxFightHandler.Utils.UsePetItem10PP();
+        WxFightHandler.UseSkillBHLH = false;
+        return;
+      } else { break; }
+    }
+  }
+  WxFightHandler.Utils.UseSkill(WxFightHandler.UseSkillBHLH ? WxFightHandler.BHLH : WxFightHandler.YQYQ);
+  WxFightHandler.UseSkillBHLH = !WxFightHandler.UseSkillBHLH;
+};
+
+WxFightHandler.OnChangePet = () => {};
+WxFightHandler.OnFightOver = () => {};

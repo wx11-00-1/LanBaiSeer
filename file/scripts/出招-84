@@ -1,0 +1,31 @@
+// 表姐、六界 弹伤，圣谱 补刀
+
+WxFightHandler.OnFirstRound = () => {
+  WxFightHandler.BIAOJIE = 3512;
+  WxFightHandler.LIUJIEDS = 3329;
+  WxFightHandler.LIUJIESW = 3045;
+  WxFightHandler.SHENGPU = 5000;
+  WxFightHandler.Utils.UseSkill(31505);
+};
+
+WxFightHandler.OnUseSkill = (mySkillInfo) => {
+  let petID = WxFightHandler.Utils.GetFightingPetID();
+  if (mySkillInfo.remainHP !== 0) {
+    WxFightHandler.Utils.UseSkill(mySkillInfo.skillList[0][0]);
+  }
+  else {
+    let changePetIDArray = [];
+    if (WxFightHandler.BIAOJIE === petID) { changePetIDArray.push(WxFightHandler.LIUJIEDS); changePetIDArray.push(WxFightHandler.LIUJIESW); }
+    else if (WxFightHandler.LIUJIESW === petID || WxFightHandler.LIUJIEDS === petID) { changePetIDArray[0] = WxFightHandler.SHENGPU; }
+    WxFightHandler.Utils.ChangePetByID(changePetIDArray);
+  }
+};
+
+WxFightHandler.OnChangePet = (petInfo) => {
+  let petID = petInfo.petID;
+  if (WxFightHandler.LIUJIEDS === petID || WxFightHandler.LIUJIESW === petID) { WxFightHandler.Utils.UseSkill(19314); }
+  else if (WxFightHandler.SHENGPU === petID) { WxFightHandler.Utils.UseSkill(31143); }
+  else { WxFightHandler.Utils.UseSkill(0); }
+};
+
+WxFightHandler.OnFightOver = () => {};

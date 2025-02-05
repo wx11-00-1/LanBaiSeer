@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL替换（https）</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    #rulesContainer {
+      margin-top: 20px;
+    }
+
+    .rule {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .rule button {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="margin: 24px;">
+    <h3>添加规则</h3>
+    <label for="ruleType">规则类型:</label>
+    <select id="ruleType">
+      <option value="url">URL替换</option>
+      <option value="file">文件替换</option>
+    </select>
+    <br>
+    <label for="ruleKey">被替换:</label>
+    <input type="text" id="ruleKey" placeholder="输入匹配URL的正则表达式">
+    <label for="ruleValue">替换值:</label>
+    <input type="text" id="ruleValue" placeholder="输入URL或文件路径">
+    <input type="file" id="fileInput" style="display: none;">
+    <button onclick="selectFile()">选择文件</button>
+    <br>
+    <label for="ruleNote">备注:</label>
+    <input type="text" id="ruleNote" placeholder="输入备注信息">
+    <br>
+    <button onclick="addRule()">添加规则</button>
+    <button onclick="deleteRule()">删除（URL）</button>
+    <h3>查找规则</h3>
+    <input type="text" id="searchNote" placeholder="输入规则备注中的关键字">
+    <br>
+    <button onclick="searchRules()">查找</button>
+    <div id="rulesContainer">
+      <!-- 这里将动态显示规则 -->
+    </div>
+  </div>
+
+  <script>
+    const fs = require('fs');
+    const path = require('path');
+    const currentPath = process.platform === 'darwin' ? path.resolve(__dirname, '..', '..') : process.cwd();
+    const { loadFiddlerRules, saveFiddlerRules } = require(path.join(currentPath, 'file', 'utils','config'));
+    let fiddlerRules = loadFiddlerRules();
+
+    const fdPath = path.join(currentPath, 'file', 'fd');
+    let replaceFileFullPath = '';
+
+    const ruleType = document.getElementById('ruleType');
+    const ruleKey = document.getElementById('ruleKey');
+    const ruleValue = document.getElementById('ruleValue');
+    const ruleNote = document.getElementById('ruleNote')
+    const fileInput = document.getElementById('fileInput');
+
+    // 添加规则
+    function addRule() {
+      let ty = ruleType.value;
+      let key = ruleKey.value;
+      let val = ruleValue.value;
+      let note = ruleNote.value;
+
+      if (ty && key && val && note) {
+        // 复制文件
+        if (ty === 'file') {
+          // 若文件夹不存在则创建
+          if (!fs.existsSync(fdPath)) {
+            fs.mkdirSync(fdPath);
+          }
+          if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const fileName = file.name;
+            const targetPath = path.join(fdPath, fileName);
+            // 判断文件是否存在
+            if (fs.existsSync(targetPath)) {
+              alert('请不要用同一个文件替换多个URL');
+              return;
+            }
+            fs.copyFile(file.path, targetPath, (err) => {
+              if (err) {
+                alert('复制文件失败');
+                return;
+              }
+              fiddlerRules.push({ type: ty, key: key, value: targetPath, note: note });
+              saveFiddlerRules(fiddlerRules);
+              displayRules();
+            });
+          } else {
+            alert('请选择一个文件');
+            return;
+          }
+        }
+        else {
+          // 检查是否为合法的URL
+          if (!val.match(/^(https:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/)) {
+            alert('输入的URL格式错误');
+            return;
+          }
+          fiddlerRules.push({ type: ty, key: key, value: val, note: note });
+          saveFiddlerRules(fiddlerRules);
+          displayRules();
+        }
+      } else {
+        alert('请填写所有字段');
+      }
+    }
+
+    // 显示规则
+    function displayRules() {
+      const rulesContainer = document.getElementById('rulesContainer');
+      rulesContainer.innerHTML = '';
+
+      fiddlerRules.forEach((rule, index) => {
+        const ruleDiv = document.createElement('div');
+        ruleDiv.style = 'padding-left: 20px;';
+        ruleDiv.className = 'rule';
+        ruleDiv.innerHTML = `
+          <p>被替换: ${rule.key}</p>
+          <p>替换值: ${rule.value}</p>
+          <p>备注: ${rule.note}</p>
+        `;
+        ruleDiv.onclick = function () {
+          ruleKey.value = rule.key;
+          ruleValue.value = rule.value;
+          ruleNote.value = rule.note;
+        };
+        rulesContainer.appendChild(ruleDiv);
+      });
+    }
+
+    // 删除规则
+    function deleteRule() {
+      const key = ruleKey.value;
+      const value = ruleValue.value;
+      fiddlerRules = fiddlerRules.filter(rule => rule.key !== key);
+      saveFiddlerRules(fiddlerRules);
+      displayRules();
+      if (value.startsWith('https://') || value.startsWith('http://')) return;
+      // 删除文件
+      fs.unlinkSync(value);
+    }
+
+    // 选择文件
+    function selectFile() {
+      fileInput.files = null;
+      fileInput.click();
+    }
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files.length > 0) {
+        ruleValue.value = fileInput.files[0].name;
+        ruleType.value = 'file';
+      }
+    });
+
+    // 查找规则
+    function searchRules() {
+      const searchNote = document.getElementById('searchNote').value;
+      const rulesContainer = document.getElementById('rulesContainer');
+      rulesContainer.innerHTML = '';
+
+      fiddlerRules.forEach((rule, index) => {
+        if (rule.note.includes(searchNote)) {
+          const ruleDiv = document.createElement('div');
+          ruleDiv.className = 'rule';
+          ruleDiv.innerHTML = `
+            <span>类型: ${rule.type}</span>
+            <span>被替换: ${rule.key}</span>
+            <span>替换值: ${rule.value}</span>
+            <span>备注: ${rule.note}</span>
+          `;
+          ruleDiv.onclick = function () {
+            ruleType.value = rule.type;
+            ruleKey.value = rule.key;
+            ruleValue.value = rule.value;
+            ruleNote.value = rule.note;
+          };
+          rulesContainer.appendChild(ruleDiv);
+        }
+      });
+    }
+
+    // 初始化显示规则
+    displayRules();
+  </script>
+</body>
+
+</html>

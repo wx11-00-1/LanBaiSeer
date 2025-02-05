@@ -1,0 +1,42 @@
+// 草王、蒂朵、克罗、六界 弹伤，1级时空 补刀
+
+WxFightHandler.OnFirstRound = (fightStartInfo) => {
+  WxFightHandler.MORUIER = 3322;
+  WxFightHandler.LIUJIE = 3329;
+  WxFightHandler.KELUO = 2977;
+  WxFightHandler.DIDUO = 4377;
+  WxFightHandler.SHIKONG = 3463;
+  WxFightHandler.IsDIDUOFirstUp = true;
+  WxFightHandler.Utils.UseSkill(0);
+};
+
+WxFightHandler.OnUseSkill = (mySkillInfo,enemySkillInfo) => {
+  let petID = WxFightHandler.Utils.GetFightingPetID();
+  if (mySkillInfo.remainHP !== 0) {
+    WxFightHandler.Utils.UseSkill(0);
+  }
+  else {
+    let ids = [];
+    if (WxFightHandler.MORUIER === petID || WxFightHandler.KELUO === petID) { ids.push(WxFightHandler.DIDUO); }
+    else if (WxFightHandler.DIDUO === petID) { ids.push(WxFightHandler.LIUJIE); }
+    else if (WxFightHandler.LIUJIE === petID) { ids.push(WxFightHandler.SHIKONG); }
+    WxFightHandler.Utils.ChangePetByID(ids);
+  }
+};
+
+WxFightHandler.OnChangePet = (petInfo) => {
+  let petID = petInfo.petID;
+  if (WxFightHandler.DIDUO === petID) {
+    if (WxFightHandler.IsDIDUOFirstUp) {
+      WxFightHandler.Utils.ChangePetByID([WxFightHandler.KELUO]);
+      WxFightHandler.IsDIDUOFirstUp = false;
+    } else {
+      WxFightHandler.Utils.UseSkill(35914);
+    }
+  }
+  else if (WxFightHandler.LIUJIE === petID) { WxFightHandler.Utils.UseSkill(19314); }
+  else if (WxFightHandler.SHIKONG === petID) { WxFightHandler.Utils.UseSkill(31252); }
+  else { WxFightHandler.Utils.UseSkill(0); }
+};
+
+WxFightHandler.OnFightOver = (fightOverInfo) => {};
