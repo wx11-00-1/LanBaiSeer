@@ -174,7 +174,7 @@ let formFiddler = () => {
 const menu = Menu.buildFromTemplate([
   {
     label: '刷新',
-    click: () => { mainWindow.reload(); }
+    click: () => mainWindow.reload()
   },
   {
     label: '配置',
@@ -195,23 +195,27 @@ const menu = Menu.buildFromTemplate([
   },
   {
     label: '地图',
-    click: () => { formMap(); }
+    click: () => formMap()
   },
   {
     label: '开声音',
-    click: () => { mainWindow.webContents.setAudioMuted(false); }
+    click: () => mainWindow.webContents.setAudioMuted(false)
   },
   {
     label: 'FD',
-    click: () => { formFiddler(); }
+    click: () => formFiddler()
   },
   {
     label: '对战助手',
-    click: () => { formFightHandler(); }
+    click: () => formFightHandler()
   },
   {
     label: '开发者工具',
-    click: () => { mainWindow.webContents.openDevTools(); }
+    click: () => mainWindow.webContents.openDevTools()
+  },
+  {
+    label: '关于本项目',
+    click: () => (new BrowserWindow()).loadURL('https://github.com/wx11-00-1/LanBaiSeer')
   }
 ]);
 
