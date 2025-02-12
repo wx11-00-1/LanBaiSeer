@@ -80,7 +80,6 @@
     if (3 - arr[0] + arr[1] === 0) break;
     // console.log('新一轮挑战');
     for (let i = 0; i < 6; ++i) {
-      await WxFightHandler.Utils.Delay(5000);
       let data = {};
       data.byteArray = await WxFightHandler.Utils.SendAsync(47087, []); // SKY_CITY_GET_BOSS_REGION
       data.position = 0;
@@ -96,6 +95,7 @@
         let isWin = await fightWithTlk(region);
         // console.log(`对战真身，${isWin?'胜利':'失败'}`);
         // 失败后的情况有点奇怪，没看明白，就不处理了
+        await WxFightHandler.Utils.Delay(5000);
         break;
       }
       else {
@@ -107,14 +107,15 @@
         }
         let isWin = await fightWithTlk(region);
         // console.log(`对战分身，${isWin?'胜利':'失败'}`);
+        await WxFightHandler.Utils.Delay(5000);
       }
     }
   }
 
   let items = await updateItems([1700364,1700365]);
-  if (items[1].itemNum<100 && items[0].itemNum>50) {
+  if (items[1].itemNum<100 && items[0].itemNum>150) {
     // 合成
-    while (items[0].itemNum > 100) {
+    while (items[0].itemNum >= 150) {
       WxFightHandler.Utils.Send(2901, 1768);
       items[0].itemNum -= 50;
       ++items[1].itemNum;
@@ -122,6 +123,8 @@
   }
   WxFightHandler.Utils.StopAutoFight();
   WxFightHandler.Utils.SetIsHidePetFight(false);
+  // 恢复背包
+  await WxFightHandler.Utils.SetPetBag(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
   if (items[0].itemNum>=100 && items[1].itemNum>=100) {
     WxFightHandler.Utils.Alarm('可以去地图965领取精灵了');
   }
