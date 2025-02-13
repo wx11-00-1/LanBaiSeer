@@ -147,6 +147,8 @@ let formFightHandler = () => {
   let form = new BrowserWindow({
     width: 960,
     height: 860,
+    x: conf.x,
+    y: conf.y,
     icon: path.join(currentPath, 'file', 'pic', 'egg_orange.ico'),
     webPreferences: {
       nodeIntegration: true,
@@ -216,6 +218,10 @@ const menu = Menu.buildFromTemplate([
   {
     label: '关于本项目',
     click: () => (new BrowserWindow()).loadURL('https://github.com/wx11-00-1/LanBaiSeer')
+  },
+  {
+    label: '退出',
+    click: () => app.quit()
   }
 ]);
 

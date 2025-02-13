@@ -1,6 +1,6 @@
 (async () => {
   try {
-    let SeerState = JSON.parse(localStorage.getItem('SeerStatePVE'));
+    let SeerState = JSON.parse(localStorage.getItem('SeerStatePVP'));
     await WxFightHandler.Utils.SetPetBagAsync(SeerState.bag1, SeerState.bag2);
     WxFightHandler.Utils.ChangeCloth(SeerState.clothes);
     WxFightHandler.Utils.SetTitle(SeerState.title);

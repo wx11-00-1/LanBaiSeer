@@ -1,0 +1,43 @@
+// 草王、蒂朵、克罗、六界 弹伤，1级时空 补刀
+
+WxFightHandler.OnFirstRound = (fightStartInfo) => {
+  WxFightHandler.茉蕊儿 = 3322;
+  WxFightHandler.六界帝神 = 3329;
+  WxFightHandler.克罗 = 2977;
+  WxFightHandler.蒂朵 = 4377;
+  WxFightHandler.时空 = 3463;
+  WxFightHandler.蒂朵首次上场 = true;
+  WxFightHandler.Utils.UseSkill(0);
+};
+
+WxFightHandler.OnUseSkill = async (mySkillInfo,enemySkillInfo) => {
+  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs);
+  let petID = WxFightHandler.Utils.GetFightingPetID();
+  if (mySkillInfo.remainHP !== 0) {
+    WxFightHandler.Utils.UseSkill(0);
+  }
+  else {
+    let ids = [];
+    if (WxFightHandler.茉蕊儿 === petID || WxFightHandler.克罗 === petID) { ids.push(WxFightHandler.蒂朵); }
+    else if (WxFightHandler.蒂朵 === petID) { ids.push(WxFightHandler.六界帝神); }
+    else if (WxFightHandler.六界帝神 === petID) { ids.push(WxFightHandler.时空); }
+    WxFightHandler.Utils.ChangePetByID(ids);
+  }
+};
+
+WxFightHandler.OnChangePet = (petInfo) => {
+  let petID = petInfo.petID;
+  if (WxFightHandler.蒂朵 === petID) {
+    if (WxFightHandler.蒂朵首次上场) {
+      WxFightHandler.Utils.ChangePetByID([WxFightHandler.克罗]);
+      WxFightHandler.蒂朵首次上场 = false;
+    } else {
+      WxFightHandler.Utils.UseSkill(35914);
+    }
+  }
+  else if (WxFightHandler.六界帝神 === petID) { WxFightHandler.Utils.UseSkill(19314); }
+  else if (WxFightHandler.时空 === petID) { WxFightHandler.Utils.UseSkill(31252); }
+  else { WxFightHandler.Utils.UseSkill(0); }
+};
+
+WxFightHandler.OnFightOver = (fightOverInfo) => {};

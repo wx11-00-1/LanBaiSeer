@@ -17,6 +17,8 @@ function loadConfig() {
       isFirstLogin: true,
       width: 1280,
       height: 720,
+      x: 0,
+      y: 0,
       zoom: 1,
       urlDefault: 'https://seer.61.com/play.shtml',
       muted: true,

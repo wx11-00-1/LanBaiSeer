@@ -9,13 +9,11 @@ WxFightHandler.OnFirstRound = () => {
 };
 
 WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-  await WxFightHandler.Utils.Delay(200);
-  let petID = WxFightHandler.Utils.GetFightingPetID();
+  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs);
   if (mySkillInfo.remainHP !== 0) {
     let skillList = mySkillInfo.skillList;
-    let useSkillIndex = 0;
-    if (skillList[useSkillIndex][1] > 0) {
-      WxFightHandler.Utils.UseSkill(skillList[useSkillIndex][0]);
+    if (skillList[0][1] > 0) {
+      WxFightHandler.Utils.UseSkill(skillList[0][0]);
     }
     else {
       WxFightHandler.Utils.UsePetItem10PP();

@@ -39,25 +39,24 @@
   const 侍君奉此生 = 31117;
   let bag1 = WxFightHandler.Utils.GetBag1();
   let bag2 = WxFightHandler.Utils.GetBag2();
-  let pets = await WxFightHandler.Utils.GetStoragePets();
+  let pets = await WxFightHandler.Utils.GetStoragePetsAsync();
   pets = pets.filter(pet => pet.id===艾欧丽娅);
   if (pets.length===0) {
     // 再看看背包里有没有
     pets = bag1.concat(bag2).filter(pet => pet.id===艾欧丽娅);
     if (pets.length===0) {
-      WxFightHandler.Utils.Alarm('未找到艾欧丽娅，任务终止');
+      alert('未找到艾欧丽娅，任务终止');
       return;
     }
   }
-  await WxFightHandler.Utils.SetPetBag([pets[0].catchTime]);
-  await WxFightHandler.Utils.Delay(1000); // 稍等背包信息刷新
+  await WxFightHandler.Utils.SetPetBagAsync([pets[0].catchTime]);
   let petInfo = WxFightHandler.Utils.GetBagPetInfos()[0];
   if (petInfo.skillArray.filter(sk => sk.id===疾击之刺).length===0) {
-    WxFightHandler.Utils.Alarm('【艾欧丽娅】没有搭配技能【疾击之刺】，任务终止');
+    alert('【艾欧丽娅】没有搭配技能【疾击之刺】，任务终止');
     return;
   }
   if (petInfo.hideSKill.id!==侍君奉此生) {
-    WxFightHandler.Utils.Alarm('【艾欧丽娅】没有搭配技能【侍君奉此生】，任务终止');
+    alert('【艾欧丽娅】没有搭配技能【侍君奉此生】，任务终止');
     return;
   }
 
@@ -89,25 +88,25 @@
         // 出招
         WxFightHandler.OnFirstRound = () => WxFightHandler.Utils.UseSkill(侍君奉此生);
         WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-          await WxFightHandler.Utils.Delay(200);
+          await WxFightHandler.Utils.DelayAsync(200);
           WxFightHandler.Utils.UseSkill(侍君奉此生);
         }
         let isWin = await fightWithTlk(region);
         // console.log(`对战真身，${isWin?'胜利':'失败'}`);
         // 失败后的情况有点奇怪，没看明白，就不处理了
-        await WxFightHandler.Utils.Delay(5000);
+        await WxFightHandler.Utils.DelayAsync(5000);
         break;
       }
       else {
         // 出招
         WxFightHandler.OnFirstRound = () => WxFightHandler.Utils.UseSkill(疾击之刺);
         WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-          await WxFightHandler.Utils.Delay(200);
+          await WxFightHandler.Utils.DelayAsync(200);
           WxFightHandler.Utils.UseSkill(疾击之刺);
         }
         let isWin = await fightWithTlk(region);
         // console.log(`对战分身，${isWin?'胜利':'失败'}`);
-        await WxFightHandler.Utils.Delay(5000);
+        await WxFightHandler.Utils.DelayAsync(5000);
       }
     }
   }
@@ -124,12 +123,12 @@
   WxFightHandler.Utils.StopAutoFight();
   WxFightHandler.Utils.SetIsHidePetFight(false);
   // 恢复背包
-  await WxFightHandler.Utils.SetPetBag(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
+  await WxFightHandler.Utils.SetPetBagAsync(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
   if (items[0].itemNum>=100 && items[1].itemNum>=100) {
-    WxFightHandler.Utils.Alarm('可以去地图965领取精灵了');
+    alert('可以去地图965领取精灵了');
   }
   else {
-    WxFightHandler.Utils.Alarm(`当前进度：${items[0].itemNum}/100 | ${items[1].itemNum}/100`);
+    alert(`当前进度：${items[0].itemNum}/100 | ${items[1].itemNum}/100`);
   }
 })();
 // 参考资料：

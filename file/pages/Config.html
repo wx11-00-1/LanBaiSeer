@@ -25,6 +25,10 @@
   <input type="checkbox" id="isLoadFormFightHandler">对战助手</input><br>
   <input type="checkbox" id="isLoadFormMap">逛地图</input><br>
   <input type="checkbox" id="isLoadFormActivity">活动收藏夹</input><br>
+  <h6>窗口初始位置</h6>
+  <label for="formFightHandlerX">对战助手:</label>
+  <input type="number" id="formFightHandlerX">
+  <input type="number" id="formFightHandlerY">
   <h6>配置文件</h6>
   <button id="saveButton">保存</button>
   <button id="backupButton">备份</button>
@@ -50,6 +54,8 @@
     const isLoadFormFightHandlerInput = document.getElementById('isLoadFormFightHandler');
     const isLoadFormMapInput = document.getElementById('isLoadFormMap');
     const isLoadFormActivityInput = document.getElementById('isLoadFormActivity');
+    const formFightHandlerXInput = document.getElementById('formFightHandlerX');
+    const formFightHandlerYInput = document.getElementById('formFightHandlerY');
 
     // 设置编辑框的值为当前窗口的宽度、高度和缩放
     modeLoginInput.checked = config.isFirstLogin;
@@ -63,6 +69,8 @@
     isLoadFormFightHandlerInput.checked = config.isLoadFormFightHandler;
     isLoadFormMapInput.checked = config.isLoadFormMap;
     isLoadFormActivityInput.checked = config.isLoadFormActivity;
+    formFightHandlerXInput.value = config.x;
+    formFightHandlerYInput.value = config.y;
 
     // 保存
     document.getElementById('saveButton').addEventListener('click', () => {
@@ -77,6 +85,8 @@
       config.isLoadFormFightHandler = isLoadFormFightHandlerInput.checked;
       config.isLoadFormMap = isLoadFormMapInput.checked;
       config.isLoadFormActivity = isLoadFormActivityInput.checked;
+      config.x = parseInt(formFightHandlerXInput.value);
+      config.y = parseInt(formFightHandlerYInput.value);
 
       saveConfig(config);
       alert('保存成功！请重新启动程序');

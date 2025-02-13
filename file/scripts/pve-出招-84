@@ -1,0 +1,31 @@
+// 表姐、六界 弹伤，圣谱 补刀
+WxFightHandler.OnFirstRound = () => {
+  WxFightHandler.帝皇之御 = 3512;
+  WxFightHandler.六界帝神 = 3329;
+  WxFightHandler.六界神王 = 3045;
+  WxFightHandler.圣灵谱尼 = 5000;
+  WxFightHandler.Utils.UseSkill(31505);
+};
+
+WxFightHandler.OnUseSkill = async (mySkillInfo) => {
+  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs);
+  let petID = WxFightHandler.Utils.GetFightingPetID();
+  if (mySkillInfo.remainHP !== 0) {
+    WxFightHandler.Utils.UseSkill(mySkillInfo.skillList[0][0]);
+  }
+  else {
+    let changePetIDArray = [];
+    if (WxFightHandler.帝皇之御 === petID) { changePetIDArray.push(WxFightHandler.六界帝神); changePetIDArray.push(WxFightHandler.六界神王); }
+    else if (WxFightHandler.六界神王 === petID || WxFightHandler.六界帝神 === petID) { changePetIDArray[0] = WxFightHandler.圣灵谱尼; }
+    WxFightHandler.Utils.ChangePetByID(changePetIDArray);
+  }
+};
+
+WxFightHandler.OnChangePet = (petInfo) => {
+  let petID = petInfo.petID;
+  if (WxFightHandler.六界帝神 === petID || WxFightHandler.六界神王 === petID) { WxFightHandler.Utils.UseSkill(19314); }
+  else if (WxFightHandler.圣灵谱尼 === petID) { WxFightHandler.Utils.UseSkill(31143); }
+  else { WxFightHandler.Utils.UseSkill(0); }
+};
+
+WxFightHandler.OnFightOver = () => {};

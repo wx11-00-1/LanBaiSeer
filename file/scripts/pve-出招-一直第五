@@ -11,13 +11,13 @@ WxFightHandler.OnFirstRound = () => {
 };
 
 WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-  await WxFightHandler.Utils.Delay(200); // 出招间隔太短会掉线
+  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs); // 出招间隔太短会掉线，默认是200ms
   let petID = WxFightHandler.Utils.GetFightingPetID();
   if (mySkillInfo.remainHP !== 0) {
     let skillList = mySkillInfo.skillList;
-    let useSkillIndex = skillList.length < 5 ? 0 : 4;
-    if (skillList[useSkillIndex][1] > 0) {
-      WxFightHandler.Utils.UseSkill(skillList[useSkillIndex][0]);
+    let i = skillList.length < 5 ? 0 : 4;
+    if (skillList[i][1] > 0) {
+      WxFightHandler.Utils.UseSkill(skillList[i][0]);
     }
     else {
       WxFightHandler.Utils.UsePetItem10PP();

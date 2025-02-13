@@ -1,14 +1,22 @@
-WxFightHandler.OnFirstRound = () => { WxFightHandler.Utils.UseSkill(0); };
+if (WxFightHandler.Utils.GetBag1().length === 0) {
+  alert('没有出战精灵');
+  return;
+}
+WxFightHandler.OnFirstRound = () => { WxFightHandler.Utils.UseSkill(0); }
 WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-  await WxFightHandler.Utils.Delay(200);
+  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs);
   if (mySkillInfo.remainHP != 0) {
     WxFightHandler.Utils.UseSkill(0);
   }
   else {
     WxFightHandler.Utils.ChangePetByID([]);
   }
-};
-WxFightHandler.OnChangePet = () => { WxFightHandler.Utils.UseSkill(0); };
-WxFightHandler.OnFightOver = () => { WxFightHandler.Utils.StopAutoFight(); };
+}
+WxFightHandler.OnChangePet = () => { WxFightHandler.Utils.UseSkill(0); }
+WxFightHandler.OnFightOver = () => {
+  WxFightHandler.Utils.StopAutoFight();
+  WxFightHandler.Utils.CurePet20HP();
+}
 
+WxFightHandler.Utils.SetIsAutoCure(false);
 WxFightHandler.Utils.LowHP();
