@@ -1,8 +1,1 @@
-(async () => {
-  try {
-    let SeerState = JSON.parse(localStorage.getItem('SeerStatePVE'));
-    await WxFightHandler.Utils.SetPetBagAsync(SeerState.bag1, SeerState.bag2);
-    WxFightHandler.Utils.ChangeCloth(SeerState.clothes);
-    WxFightHandler.Utils.SetTitle(SeerState.title);
-  } catch {alert('未保存')}
-})();
+WxFightHandler.Utils.StateLoadAsync('日常')

@@ -1,10 +1,1 @@
-(() => {
-  let SeerState = new Object();
-  let key = 'SeerStateFragment1';
-  if (localStorage.getItem(key)!=null) localStorage.removeItem(key);
-  SeerState.clothes = WxFightHandler.Utils.GetClothes();
-  SeerState.title = WxFightHandler.Utils.GetTitle();
-  SeerState.bag1 = WxFightHandler.Utils.GetBag1().map(pet => pet.catchTime);
-  SeerState.bag2 = WxFightHandler.Utils.GetBag2().map(pet => pet.catchTime);
-  localStorage.setItem(key, JSON.stringify(SeerState));
-})();
+WxFightHandler.Utils.StateSave('因子1')
