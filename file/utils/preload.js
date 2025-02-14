@@ -62,7 +62,7 @@ WxFightHandler.Utils.GetRound = () => WxFightHandler.Private.Round;
 WxFightHandler.Private.ShowRound = (hp1,hp2) => { WxFightHandler.Private.Round += 1; ipcRenderer.send('set-title', `${hp1}% (${WxFightHandler.Private.Round}) ${hp2}%`); };
 
 WxFightHandler.Utils.UseSkill = skillID => document.Client.WxUseSkill(skillID);
-WxFightHandler.Utils.ChangePet = petCatchTime => document.Client.WxChangePet(petCatchTime);
+WxFightHandler.Utils.ChangePet = petCatchTime => WxFightHandler.Reflection.Action(WxFightHandler.Const.SocketConnection,'WxChangePet',petCatchTime);
 WxFightHandler.Utils.UsePetItem = itemID => document.Client.WxUsePetItem(itemID);
 WxFightHandler.Utils.UsePetItem10PP = () => {
   WxFightHandler.Utils.ItemBuy(300017);
@@ -72,9 +72,9 @@ WxFightHandler.Utils.ItemBuy = itemID => document.Client.WxItemBuy(itemID);
 
 WxFightHandler.Utils.StopAutoFight = () => { WxFightHandler.OnFirstRound = WxFightHandler.OnUseSkill = WxFightHandler.OnChangePet = WxFightHandler.OnFightOver = () => {}; };
 
-WxFightHandler.Utils.GetFightingPetID = () => document.Client.WxGetFightingPetID();
-WxFightHandler.Utils.GetFightingPetCatchTime = () => document.Client.WxGetFightingPetCatchTime();
-WxFightHandler.Utils.GetFightingPets = () => document.Client.WxGetFightingPets();
+WxFightHandler.Utils.GetFightingPetID = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.SocketConnection,'WxFightingPetID');
+WxFightHandler.Utils.GetFightingPetCatchTime = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.SocketConnection,'WxFightingPetCatchTime');
+WxFightHandler.Utils.GetFightingPets = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.SocketConnection,'WxFightingPets');
 WxFightHandler.Utils.ChangePetByID = ids => document.Client.WxChangePetByID(ids);
 
 WxFightHandler.Utils.DelayAsync = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -90,10 +90,10 @@ WxFightHandler.Utils.GetSkillNameByID = skillID => WxFightHandler.Reflection.Fun
 
 WxFightHandler.Utils.AutoFight = id => document.Client.WxAutoFight(id);
 
-WxFightHandler.Utils.SetIsHidePetFight = h => document.Client.WxSetIsHidePetFight(h);
+WxFightHandler.Utils.SetIsHidePetFight = h => WxFightHandler.Reflection.Set('com.robot.app.fight.FightManager','petFightClass',(h ? 'PetFightDLL' : 'PetFightDLL_201308'));
 WxFightHandler.Utils.SetIsAutoCure = cure => WxFightHandler.Reflection.Set(WxFightHandler.Const.SocketConnection,'WxIsAutoCure',cure);
 WxFightHandler.Utils.CurePet20HP = () => document.Client.WxCurePet20HP();
-WxFightHandler.Utils.CurePetAll = () => document.Client.WxCurePetAll();
+WxFightHandler.Utils.CurePetAll = () => WxFightHandler.Reflection.Action(WxFightHandler.Const.SocketConnection,'WxCurePetAll');
 WxFightHandler.Utils.LowHP = () => document.Client.WxLowHP();
 WxFightHandler.Utils.SimpleAlarm = msg => WxFightHandler.Reflection.Action('com.robot.core.ui.alert.SimpleAlarm','show',msg);
 
