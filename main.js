@@ -130,19 +130,6 @@ let loadXml = name => new Promise((resolve, reject) => {
   });
 });
 
-let formMap = () => {
-  let form = new BrowserWindow({
-    width: 320,
-    height: 240,
-    icon: path.join(currentPath, 'file', 'pic', 'egg_sky.ico'),
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    }
-  });
-  form.setMenu(null);
-  form.loadFile(path.join(currentPath, 'file', 'pages', 'MapScroll.html'));
-}
 let formFightHandler = () => {
   let form = new BrowserWindow({
     width: 960,
@@ -196,10 +183,6 @@ const menu = Menu.buildFromTemplate([
     }
   },
   {
-    label: '地图',
-    click: () => formMap()
-  },
-  {
     label: '开声音',
     click: () => mainWindow.webContents.setAudioMuted(false)
   },
@@ -237,7 +220,6 @@ app.whenReady().then(() => {
   
   createWindow();
   
-  if (conf.isLoadFormMap) formMap();
   if (conf.isLoadFormFightHandler) formFightHandler();
 
   // 若开启 Fiddler 功能，无法通过游戏的登录验证

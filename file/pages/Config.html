@@ -23,8 +23,6 @@
   <input type="text" id="skinIDs"><br><br>
   <h6>启动时加载窗口</h6>
   <input type="checkbox" id="isLoadFormFightHandler">对战助手</input><br>
-  <input type="checkbox" id="isLoadFormMap">逛地图</input><br>
-  <input type="checkbox" id="isLoadFormActivity">活动收藏夹</input><br>
   <h6>窗口初始位置</h6>
   <label for="formFightHandlerX">对战助手:</label>
   <input type="number" id="formFightHandlerX">
@@ -52,8 +50,6 @@
     const skinIDsInput = document.getElementById('skinIDs');
     const isRandomSkinInput = document.getElementById('isRandomSkin');
     const isLoadFormFightHandlerInput = document.getElementById('isLoadFormFightHandler');
-    const isLoadFormMapInput = document.getElementById('isLoadFormMap');
-    const isLoadFormActivityInput = document.getElementById('isLoadFormActivity');
     const formFightHandlerXInput = document.getElementById('formFightHandlerX');
     const formFightHandlerYInput = document.getElementById('formFightHandlerY');
 
@@ -67,8 +63,6 @@
     skinIDsInput.value = JSON.stringify(config.skinIDs);
     isRandomSkinInput.checked = config.isRandomSkin;
     isLoadFormFightHandlerInput.checked = config.isLoadFormFightHandler;
-    isLoadFormMapInput.checked = config.isLoadFormMap;
-    isLoadFormActivityInput.checked = config.isLoadFormActivity;
     formFightHandlerXInput.value = config.x;
     formFightHandlerYInput.value = config.y;
 
@@ -83,8 +77,6 @@
       config.skinIDs = JSON.parse(skinIDsInput.value);
       config.isRandomSkin = isRandomSkinInput.checked;
       config.isLoadFormFightHandler = isLoadFormFightHandlerInput.checked;
-      config.isLoadFormMap = isLoadFormMapInput.checked;
-      config.isLoadFormActivity = isLoadFormActivityInput.checked;
       config.x = parseInt(formFightHandlerXInput.value);
       config.y = parseInt(formFightHandlerYInput.value);
 
