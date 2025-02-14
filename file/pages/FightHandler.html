@@ -214,8 +214,8 @@
     });
 
     // 对战界面
-    hideFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'document.Client.WxSetIsHidePetFight(true)'));
-    showFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'document.Client.WxSetIsHidePetFight(false)'));
+    hideFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsHidePetFight(true)'));
+    showFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsHidePetFight(false)'));
 
     // 治疗
     cureAllButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.CurePetAll()'));
