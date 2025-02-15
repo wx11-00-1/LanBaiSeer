@@ -97,6 +97,9 @@ switch (process.platform) {
   case 'darwin':
     flashPluginName = 'PepperFlashPlayer.plugin';
     break;
+  // linux 探索（20250215）：
+  // 1. 环境：ubuntu 22.04 | electron 4.2.11
+  // 2. 结果：无法显示赛尔号的 flash 内容，但可以显示奥奇的。。。
 }
 app.commandLine.appendSwitch('ppapi-flash-path', path.join(currentPath, 'file', 'flash', flashPluginName));
 
