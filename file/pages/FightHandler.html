@@ -163,12 +163,14 @@
     refreshList();
 
     // 运行
-    runButton.addEventListener('click', () => {
+    let _res = null;
+    runButton.addEventListener('click', async () => {
       runButton.disabled = true;
-      setTimeout(() => {
-        runButton.disabled = false;
-      }, 1000);
-      ipcRenderer.send(cmdExecJs, contentArea.value);
+      await new Promise((res) => {
+        _res = res;
+        ipcRenderer.send(cmdExecJs, `(async ()=>{try{${contentArea.value}\nWxSc.Priv._res()}catch(e){console.error(e);WxSc.Priv._res()}})()`);
+      });
+      runButton.disabled = false;
     });
     // 保存
     saveButton.addEventListener('click', () => {

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, protocol, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, Menu, protocol, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -86,6 +86,7 @@ const swfPath = path.join(currentPath, 'file','swf');
 const xmlPath = path.join(currentPath, 'file','xml');
 
 let mainWindow = null;
+let fhWindow = null;
 let conf = null;
 let fiddlerRules = null;
 
@@ -147,6 +148,7 @@ let formFightHandler = () => {
   });
   form.setMenu(null);
   form.loadFile(path.join(currentPath, 'file', 'pages', 'FightHandler.html'));
+  return form;
 }
 let formFiddler = () => {
   let form = new BrowserWindow({
@@ -195,7 +197,7 @@ const menu = Menu.buildFromTemplate([
   },
   {
     label: '对战助手',
-    click: () => formFightHandler()
+    click: () => fhWindow = formFightHandler()
   },
   {
     label: '开发者工具',
@@ -218,12 +220,15 @@ app.whenReady().then(() => {
   // 右键菜单
   ipcMain.on('menu', (e, x, y) => menu.popup({ x, y }));
 
+  // FightHandler 页面的脚本运行结束
+  ipcMain.on('res', () => fhWindow.webContents.executeJavaScript('_res()'));
+
   conf = loadConfig();
   fiddlerRules = loadFiddlerRules();
   
   createWindow();
   
-  if (conf.isLoadFormFightHandler) formFightHandler();
+  if (conf.isLoadFormFightHandler) fhWindow = formFightHandler();
 
   // 若开启 Fiddler 功能，无法通过游戏的登录验证
   // 所以默认是关闭的，用户登录后再手动开启

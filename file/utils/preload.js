@@ -6,7 +6,7 @@ window.addEventListener('contextmenu', e => {
 });
 
 WxSc = {}
-WxSc.Priv = {}
+WxSc.Priv = { _res: ()=>ipcRenderer.send('res') };
 WxSc.Util = {}
 
 WxSc.Priv._cure = true;
