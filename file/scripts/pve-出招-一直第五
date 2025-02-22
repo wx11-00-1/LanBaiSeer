@@ -1,36 +1,36 @@
 // 适用于 pve，没有考虑 pvp 的复杂情况（例如被逐界苍星锁住技能）
 // 如果上场的精灵有特殊的第五技能，就像武心婵那样，无法立刻使用的，请自行添加代码处理
-WxFightHandler.OnFirstRound = () => {
-  let firstPetCatchtime = WxFightHandler.Utils.GetFightingPetCatchTime();
-  for (let pet of WxFightHandler.Utils.GetFightingPets()) {
+WxSc.OnFirstRound = () => {
+  let firstPetCatchtime = WxSc.Util.GetFightingPetCatchTime();
+  for (let pet of WxSc.Util.GetFightingPets()) {
     if (pet.catchTime === firstPetCatchtime) {
-      WxFightHandler.Utils.UseSkill(pet.hideSKill === null ? pet.skillArray[0] : pet.hideSKill.id); // 若无第五，则用一技能
+      WxSc.Util.UseSkill(pet.hideSKill === null ? pet.skillArray[0] : pet.hideSKill.id); // 若无第五，则用一技能
       break;
     }
   }
 };
 
-WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs); // 出招间隔太短会掉线，默认是200ms
-  let petID = WxFightHandler.Utils.GetFightingPetID();
+WxSc.OnUseSkill = async (mySkillInfo) => {
+  await WxSc.Util.DelayAsync(WxSc.Const.DelayMs); // 出招间隔太短会掉线，默认是200ms
+  let petID = WxSc.Util.GetFightingPetID();
   if (mySkillInfo.remainHP !== 0) {
     let skillList = mySkillInfo.skillList;
     let i = skillList.length < 5 ? 0 : 4;
     if (skillList[i][1] > 0) {
-      WxFightHandler.Utils.UseSkill(skillList[i][0]);
+      WxSc.Util.UseSkill(skillList[i][0]);
     }
     else {
-      WxFightHandler.Utils.UsePetItem10PP();
+      WxSc.Util.UsePetItem10PP();
     }
   }
   else {
-    WxFightHandler.Utils.ChangePetByID([]);
+    WxSc.Util.ChangePetByID([]);
   }
 };
 
-WxFightHandler.OnChangePet = (petInfo) => {
+WxSc.OnChangePet = (petInfo) => {
   let skillList = petInfo.skillList;
-  WxFightHandler.Utils.UseSkill(skillList[skillList.length < 5 ? 0 : 4][0]);
+  WxSc.Util.UseSkill(skillList[skillList.length < 5 ? 0 : 4][0]);
 };
 
-WxFightHandler.OnFightOver = () => {};
+WxSc.OnFightOver = () => {};

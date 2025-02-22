@@ -1,1 +1,1 @@
-WxFightHandler.Utils.StateLoadAsync('因子1')
+WxSc.Util.StateLoadAsync('因子1')

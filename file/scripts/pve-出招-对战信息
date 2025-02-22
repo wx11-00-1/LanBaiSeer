@@ -7,15 +7,15 @@
 
   let originUseSkill = fight['OnUseSkill'];
   fight['OnUseSkill'] = (mySkillInfo,enemySkillInfo,isMeFirst) => {
-    console.log(`[${WxFightHandler.Utils.GetRound()}] ${isMeFirst ? '我' : '敌'}方先手`);
-    console.log(` 我方${(mySkillInfo.skillID===0 ? '没有出招' : '使用技能 [' + WxFightHandler.Utils.GetSkillNameByID(mySkillInfo.skillID) + ']')}`);
-    console.log(` 敌方${(enemySkillInfo.skillID===0? '没有出招' : '使用技能 [' + WxFightHandler.Utils.GetSkillNameByID(enemySkillInfo.skillID) + ']')}`);
+    console.log(`[${WxSc.Util.GetRound()}] ${isMeFirst ? '我' : '敌'}方先手`);
+    console.log(` 我方${(mySkillInfo.skillID===0 ? '没有出招' : '使用技能 [' + WxSc.Util.GetSkillNameByID(mySkillInfo.skillID) + ']')}`);
+    console.log(` 敌方${(enemySkillInfo.skillID===0? '没有出招' : '使用技能 [' + WxSc.Util.GetSkillNameByID(enemySkillInfo.skillID) + ']')}`);
     originUseSkill(mySkillInfo,enemySkillInfo,isMeFirst);
   }
 
   let originChangePet = fight['OnChangePet'];
   fight['OnChangePet'] = (petInfo) => {
-    console.log(`【${WxFightHandler.Utils.GetPetNameByID(petInfo.petID)}】登场`);
+    console.log(`【${WxSc.Util.GetPetNameByID(petInfo.petID)}】登场`);
     originChangePet(petInfo);
   }
-})(WxFightHandler);
+})(WxSc);

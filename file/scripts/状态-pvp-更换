@@ -1,1 +1,1 @@
-WxFightHandler.Utils.StateLoadAsync('pvp')
+WxSc.Util.StateLoadAsync('pvp')

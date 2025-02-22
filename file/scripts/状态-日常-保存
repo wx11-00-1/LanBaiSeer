@@ -1,1 +1,1 @@
-WxFightHandler.Utils.StateSave('日常')
+WxSc.Util.StateSave('日常')

@@ -1,15 +1,13 @@
-(async () => {
-  let FIRE_BLUE_SMALL = 2;
-  let FIRE_PURPLE_SMALL = 3;
-  let FIRE_GOLD_SMALL = 4;
-  let FIRE_GREEN_SMALL = 5;
-  let FIRE_GREEN_BIG = 6;
-  let FIRE_BLUE_BIG = 7;
-  let FIRE_PURPLE_BIG = 8;
-  let FIRE_GOLD_BIG = 9;
-  if (await WxFightHandler.Utils.CopyFireAsync([FIRE_GREEN_SMALL])) {
-    setTimeout(() => {
-      WxFightHandler.Utils.SimpleAlarm('火焰好像快失效了');
-    }, 10 * 60 * 1000);
-  }
-})();
+let FIRE_BLUE_SMALL = 2;
+let FIRE_PURPLE_SMALL = 3;
+let FIRE_GOLD_SMALL = 4;
+let FIRE_GREEN_SMALL = 5;
+let FIRE_GREEN_BIG = 6;
+let FIRE_BLUE_BIG = 7;
+let FIRE_PURPLE_BIG = 8;
+let FIRE_GOLD_BIG = 9;
+if (await WxSc.Util.CopyFireAsync([FIRE_GREEN_SMALL])) {
+  setTimeout(() => {
+    WxSc.Util.SimpleAlarm('火焰好像快失效了');
+  }, 10 * 60 * 1000);
+}

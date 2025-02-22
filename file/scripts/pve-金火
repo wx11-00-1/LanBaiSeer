@@ -1,11 +1,1 @@
-(async () => {
-    let FIRE_BLUE_SMALL = 2;
-    let FIRE_PURPLE_SMALL = 3;
-    let FIRE_GOLD_SMALL = 4;
-    let FIRE_GREEN_SMALL = 5;
-    let FIRE_GREEN_BIG = 6;
-    let FIRE_BLUE_BIG = 7;
-    let FIRE_PURPLE_BIG = 8;
-    let FIRE_GOLD_BIG = 9;
-    await WxFightHandler.Utils.CopyFireAsync([FIRE_GOLD_BIG,FIRE_GOLD_SMALL]);
-  })();
+await WxSc.Util.CopyFireAsync([9,4]);

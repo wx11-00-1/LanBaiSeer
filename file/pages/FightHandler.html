@@ -201,7 +201,7 @@
       }
     });
     // 停止自动出招
-    stopFightingButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.StopAutoFight()'));
+    stopFightingButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.StopAutoFight()'));
     // 删除
     deleteButton.addEventListener('click', () => {
       const fileName = fileNameInput.value;
@@ -214,21 +214,21 @@
     });
 
     // 对战界面
-    hideFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsHidePetFight(true)'));
-    showFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsHidePetFight(false)'));
+    hideFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.SetIsHidePetFight(true)'));
+    showFightPanelButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.SetIsHidePetFight(false)'));
 
     // 治疗
-    cureAllButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.CurePetAll()'));
-    cure20hpButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.CurePet20HP()'));
-    stopAutoCureButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsAutoCure(false)'));
-    startAutoCureButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.SetIsAutoCure(true)'));
+    cureAllButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.CurePetAll()'));
+    cure20hpButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.CurePet20HP()'));
+    stopAutoCureButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.SetIsAutoCure(false)'));
+    startAutoCureButton.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.SetIsAutoCure(true)'));
     // 道具
-    item170Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300749)'));
-    item1503Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300701)'));
-    item10Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem10PP()'));
-    item20Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300018)'));
-    item250Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300079)'));
-    item200Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxFightHandler.Utils.UsePetItem(300157)'));
+    item170Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.UsePetItem(300749)'));
+    item1503Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.UsePetItem(300701)'));
+    item10Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.UsePetItem10PP()'));
+    item20Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.UsePetItem(300018)'));
+    item250Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.UsePetItem(300079)'));
+    item200Button.addEventListener('click', () => ipcRenderer.send(cmdExecJs, 'WxSc.Util.UsePetItem(300157)'));
   </script>
 </body>
 

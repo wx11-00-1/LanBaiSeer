@@ -1,2 +1,2 @@
-WxFightHandler.Utils.ChangeCloth([1301043,0,1301044,0,1301045,0,1301046,0,1300954,0]);
-WxFightHandler.Utils.SetTitle(272);
+WxSc.Util.ChangeCloth([1301043,0,1301044,0,1301045,0,1301046,0,1300954,0]);
+WxSc.Util.SetTitle(272);

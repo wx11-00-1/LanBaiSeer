@@ -1,1 +1,1 @@
-WxFightHandler.Utils.StateSave('pvp')
+WxSc.Util.StateSave('pvp')

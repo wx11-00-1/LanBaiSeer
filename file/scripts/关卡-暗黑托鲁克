@@ -1,136 +1,135 @@
 // 需要有精灵：3437 艾欧丽娅（携带技能疾击之刺、第五技能侍君奉此生）
-(async () => {
-  function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
-  function ReadByte(data) { return data.byteArray[data.position++]; }
+function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
+function ReadByte(data) { return data.byteArray[data.position++]; }
 
-  async function getMultiValue(arr) {
-    arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
-    let data = {};
-    data.byteArray = await WxFightHandler.Utils.SendAsync(46046, arr);
-    data.position = 0;
-    // 将收到的包解析成数组
-    let result = [];
-    let arrayLength = ReadInt(data);
-    for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
-    return result;
+async function getMultiValue(arr) {
+  arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
+  let data = {};
+  data.byteArray = await WxSc.Util.SendAsync(46046, arr);
+  data.position = 0;
+  // 将收到的包解析成数组
+  let result = [];
+  let arrayLength = ReadInt(data);
+  for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
+  return result;
+}
+
+async function updateItems(arr) {
+  arr.unshift(arr.length);
+  let data = {};
+  data.byteArray = await WxSc.Util.SendAsync(42399, arr); // MULTI_ITEM_LIST
+  data.position = 0;
+  let result = [];
+  let arrayLength = ReadInt(data);
+  for (let i = 0; i < arrayLength; ++i) {
+    let item = {};
+    item.itemID = ReadInt(data);
+    item.itemNum = ReadInt(data);
+    item.leftTime = ReadInt(data);
+    item._itemLevel = ReadInt(data);
+    item.updateTime = ReadInt(data);
+    result.push(item);
   }
+  return result;
+}
 
-  async function updateItems(arr) {
-    arr.unshift(arr.length);
-    let data = {};
-    data.byteArray = await WxFightHandler.Utils.SendAsync(42399, arr); // MULTI_ITEM_LIST
-    data.position = 0;
-    let result = [];
-    let arrayLength = ReadInt(data);
-    for (let i = 0; i < arrayLength; ++i) {
-      let item = {};
-      item.itemID = ReadInt(data);
-      item.itemNum = ReadInt(data);
-      item.leftTime = ReadInt(data);
-      item._itemLevel = ReadInt(data);
-      item.updateTime = ReadInt(data);
-      result.push(item);
-    }
-    return result;
-  }
-
-  const 艾欧丽娅 = 3437;
-  const 疾击之刺 = 31114;
-  const 侍君奉此生 = 31117;
-  let bag1 = WxFightHandler.Utils.GetBag1();
-  let bag2 = WxFightHandler.Utils.GetBag2();
-  let pets = await WxFightHandler.Utils.GetStoragePetsAsync();
-  pets = pets.filter(pet => pet.id===艾欧丽娅);
+const 艾欧丽娅 = 3437;
+const 疾击之刺 = 31114;
+const 侍君奉此生 = 31117;
+let bag1 = WxSc.Util.GetBag1();
+let bag2 = WxSc.Util.GetBag2();
+let pets = await WxSc.Util.GetStoragePetsAsync();
+pets = pets.filter(pet => pet.id===艾欧丽娅);
+if (pets.length===0) {
+  // 再看看背包里有没有
+  pets = bag1.concat(bag2).filter(pet => pet.id===艾欧丽娅);
   if (pets.length===0) {
-    // 再看看背包里有没有
-    pets = bag1.concat(bag2).filter(pet => pet.id===艾欧丽娅);
-    if (pets.length===0) {
-      alert('未找到艾欧丽娅，任务终止');
-      return;
-    }
-  }
-  await WxFightHandler.Utils.SetPetBagAsync([pets[0].catchTime]);
-  let petInfo = WxFightHandler.Utils.GetBagPetInfos()[0];
-  if (petInfo.skillArray.filter(sk => sk.id===疾击之刺).length===0) {
-    alert('【艾欧丽娅】没有搭配技能【疾击之刺】，任务终止');
+    alert('未找到艾欧丽娅，任务终止');
     return;
   }
-  if (petInfo.hideSKill.id!==侍君奉此生) {
-    alert('【艾欧丽娅】没有搭配技能【侍君奉此生】，任务终止');
-    return;
-  }
+}
+await WxSc.Util.SetPetBagAsync([pets[0].catchTime]);
+let petInfo = WxSc.Util.GetBagPetInfos()[0];
+if (petInfo.skillArray.filter(sk => sk.id===疾击之刺).length===0) {
+  alert('【艾欧丽娅】没有搭配技能【疾击之刺】，任务终止');
+  return;
+}
+if (petInfo.hideSKill.id!==侍君奉此生) {
+  alert('【艾欧丽娅】没有搭配技能【侍君奉此生】，任务终止');
+  return;
+}
 
-  WxFightHandler.Utils.SimpleAlarm('崩塌吧！天空之城！');
-  WxFightHandler.Utils.SetIsHidePetFight(true);
+WxSc.Util.SimpleAlarm('崩塌吧！天空之城！');
+WxSc.Util.SetIsHidePetFight(true);
 
-  // 发起战斗
-  let fightWithTlk = (region) => {
-    return new Promise(res => {
-      WxFightHandler.OnFightOver = (overInfo) => {
-        res (overInfo.winnerID != 0);
-      }
-      WxFightHandler.Utils.Send(41129, region);
-    });
-  }
+// 发起战斗
+let fightWithTlk = (region) => {
+  return new Promise(res => {
+    WxSc.OnFightOver = (overInfo) => {
+      res (overInfo.winnerID != 0);
+    }
+    WxSc.Util.Send(41129, region);
+  });
+}
 
-  while (true) {
-    // 剩余挑战次数
-    let arr = await getMultiValue([12045,2065]);
-    if (3 - arr[0] + arr[1] === 0) break;
-    // console.log('新一轮挑战');
-    for (let i = 0; i < 6; ++i) {
-      let data = {};
-      data.byteArray = await WxFightHandler.Utils.SendAsync(47087, []); // SKY_CITY_GET_BOSS_REGION
-      data.position = 0;
-      let region = ReadInt(data);
-      if (region === 251) {
-        // 真身
-        // 出招
-        WxFightHandler.OnFirstRound = () => WxFightHandler.Utils.UseSkill(侍君奉此生);
-        WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-          await WxFightHandler.Utils.DelayAsync(200);
-          WxFightHandler.Utils.UseSkill(侍君奉此生);
-        }
-        let isWin = await fightWithTlk(region);
-        // console.log(`对战真身，${isWin?'胜利':'失败'}`);
-        // 失败后的情况有点奇怪，没看明白，就不处理了
-        await WxFightHandler.Utils.DelayAsync(5000);
-        break;
+while (true) {
+  // 剩余挑战次数
+  let arr = await getMultiValue([12045,2065]);
+  if (3 - arr[0] + arr[1] === 0) break;
+  // console.log('新一轮挑战');
+  for (let i = 0; i < 6; ++i) {
+    let data = {};
+    data.byteArray = await WxSc.Util.SendAsync(47087, []); // SKY_CITY_GET_BOSS_REGION
+    data.position = 0;
+    let region = ReadInt(data);
+    if (region === 251) {
+      // 真身
+      // 出招
+      WxSc.OnFirstRound = () => WxSc.Util.UseSkill(侍君奉此生);
+      WxSc.OnUseSkill = async (mySkillInfo) => {
+        await WxSc.Util.DelayAsync(200);
+        WxSc.Util.UseSkill(侍君奉此生);
       }
-      else {
-        // 出招
-        WxFightHandler.OnFirstRound = () => WxFightHandler.Utils.UseSkill(疾击之刺);
-        WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-          await WxFightHandler.Utils.DelayAsync(200);
-          WxFightHandler.Utils.UseSkill(疾击之刺);
-        }
-        let isWin = await fightWithTlk(region);
-        // console.log(`对战分身，${isWin?'胜利':'失败'}`);
-        await WxFightHandler.Utils.DelayAsync(5000);
+      let isWin = await fightWithTlk(region);
+      // console.log(`对战真身，${isWin?'胜利':'失败'}`);
+      // 失败后的情况有点奇怪，没看明白，就不处理了
+      await WxSc.Util.DelayAsync(5000);
+      break;
+    }
+    else {
+      // 出招
+      WxSc.OnFirstRound = () => WxSc.Util.UseSkill(疾击之刺);
+      WxSc.OnUseSkill = async (mySkillInfo) => {
+        await WxSc.Util.DelayAsync(200);
+        WxSc.Util.UseSkill(疾击之刺);
       }
+      let isWin = await fightWithTlk(region);
+      // console.log(`对战分身，${isWin?'胜利':'失败'}`);
+      await WxSc.Util.DelayAsync(5000);
     }
   }
+}
 
-  let items = await updateItems([1700364,1700365]);
-  if (items[1].itemNum<100 && items[0].itemNum>150) {
-    // 合成
-    while (items[0].itemNum >= 150) {
-      WxFightHandler.Utils.Send(2901, 1768);
-      items[0].itemNum -= 50;
-      ++items[1].itemNum;
-    }
+let items = await updateItems([1700364,1700365]);
+if (items[1].itemNum<100 && items[0].itemNum>150) {
+  // 合成
+  while (items[0].itemNum >= 150) {
+    WxSc.Util.Send(2901, 1768);
+    items[0].itemNum -= 50;
+    ++items[1].itemNum;
   }
-  WxFightHandler.Utils.StopAutoFight();
-  WxFightHandler.Utils.SetIsHidePetFight(false);
-  // 恢复背包
-  await WxFightHandler.Utils.SetPetBagAsync(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
-  if (items[0].itemNum>=100 && items[1].itemNum>=100) {
-    alert('可以去地图965领取精灵了');
-  }
-  else {
-    alert(`当前进度：${items[0].itemNum}/100 | ${items[1].itemNum}/100`);
-  }
-})();
+}
+WxSc.Util.StopAutoFight();
+WxSc.Util.SetIsHidePetFight(false);
+// 恢复背包
+await WxSc.Util.SetPetBagAsync(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
+if (items[0].itemNum>=100 && items[1].itemNum>=100) {
+  alert('可以去地图965领取精灵了');
+}
+else {
+  WxSc.Util.SimpleAlarm(`当前进度：${items[0].itemNum}/100 | ${items[1].itemNum}/100`);
+}
+
 // 参考资料：
 // https://seer.61.com/module/com/robot/module/app/BlackBulukeMainPanel.swf
 // https://seer.61.com/dll/RobotAppDLL.swf

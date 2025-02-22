@@ -1,20 +1,18 @@
-(async () => {
-  let bag1 = WxFightHandler.Utils.GetBag1();
-  let bag2 = WxFightHandler.Utils.GetBag2();
-  let pets = await WxFightHandler.Utils.GetStoragePetsAsync();
-  // 从仓库取出一只 皮皮
-  pets = pets.filter(pet => pet.id===10);
-  if (pets.length === 0) {
-    pets = bag1.concat(bag2).filter(pet => pet.id===10);
-    if (pets.length === 0) WxFightHandler.Utils.SimpleAlarm('没有精灵皮皮，任务失败');
-  }
-  let ct = pets[0].catchTime;
-  await WxFightHandler.Utils.SetPetBagAsync([ct]);
-  // 性格
-  WxFightHandler.Utils.Send(2326,ct,300070);
-  // 恢复背包
-  await WxFightHandler.Utils.SetPetBagAsync(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
-  // 领奖
-  WxFightHandler.Utils.Send(41916,1,3);
-  WxFightHandler.Utils.SimpleAlarm('ok');
-})();
+let bag1 = WxSc.Util.GetBag1();
+let bag2 = WxSc.Util.GetBag2();
+let pets = await WxSc.Util.GetStoragePetsAsync();
+// 从仓库取出一只 皮皮
+pets = pets.filter(pet => pet.id===10);
+if (pets.length === 0) {
+  pets = bag1.concat(bag2).filter(pet => pet.id===10);
+  if (pets.length === 0) WxSc.Util.SimpleAlarm('没有精灵皮皮，任务失败');
+}
+let ct = pets[0].catchTime;
+await WxSc.Util.SetPetBagAsync([ct]);
+// 性格
+WxSc.Util.Send(2326,ct,300070);
+// 恢复背包
+await WxSc.Util.SetPetBagAsync(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
+// 领奖
+WxSc.Util.Send(41916,1,3);
+WxSc.Util.SimpleAlarm('ok');

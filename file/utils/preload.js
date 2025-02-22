@@ -5,47 +5,60 @@ window.addEventListener('contextmenu', e => {
   ipcRenderer.send('menu', { x: e.clientX, y: e.clientY });
 });
 
-WxFightHandler = {};
-WxFightHandler.Private = {};
-WxFightHandler.Utils = {};
+WxSc = {}
+WxSc.Priv = {}
+WxSc.Util = {}
 
-WxFightHandler.Reflection = {};
-WxFightHandler.Reflection.Get = (className,k) => document.Client.WxReflGet(className,k);
-WxFightHandler.Reflection.Set = (className,k,v) => document.Client.WxReflSet(className,k,v);
-WxFightHandler.Reflection.Action = (className,methodName,...args) => document.Client.WxReflAction(className,methodName,...args);
-WxFightHandler.Reflection.Func = (className,methodName,...args) => document.Client.WxReflFunc(className,methodName,...args);
-WxFightHandler.Reflection.AddObj = (key,className,...args) => document.Client.WxAddObj(key,className,...args);
-WxFightHandler.Reflection.SetObj = (k,a,v,u) => document.Client.WxSetObj(k,a,v,u);
+WxSc.Priv._cure = true;
+WxSc.Priv.ShowRound = (hp1,hp2) => { WxSc.Priv.Round += 1; ipcRenderer.send('set-title', `${hp1}% (${WxSc.Priv.Round}) ${hp2}%`); };
 
-WxFightHandler.Const = {};
-WxFightHandler.Const.StateKey = 'LanBaiState';
-WxFightHandler.Const.DelayMs = 200;
-WxFightHandler.Const.Pet = 'com.robot.core.pet.Pet';
-WxFightHandler.Const.PetManager = 'com.robot.core.manager.PetManager';
-WxFightHandler.Const.MainManager = 'com.robot.core.manager.MainManager';
-WxFightHandler.Const.SocketConnection = 'com.robot.core.net.SocketConnection';
+WxSc.Refl = {}
+WxSc.Refl.Set = (name,a,u,v) => document.Client.WxRefl(1,name,a,u,v);
+WxSc.Refl.Get = (name,a) => document.Client.WxRefl(2,name,a);
+WxSc.Refl.Func = (name,method,...args) => document.Client.WxRefl(3,name,method,...args);
+WxSc.Refl.Tmp = (name,method,key,...args) => document.Client.WxRefl(4,name,method,key,...args);
 
-WxFightHandler.Utils.GetBagPetInfos = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.PetManager,'allInfos');
-WxFightHandler.Utils.GetBag1 = () => WxFightHandler.Reflection.Func(WxFightHandler.Const.PetManager,'getBagMap');
-WxFightHandler.Utils.GetBag2 = () => WxFightHandler.Reflection.Func(WxFightHandler.Const.PetManager,'getSecondBagMap');
+WxSc.Dict = {}
+WxSc.Dict.Add = (key,name,...args) => document.Client.WxAddObj(key,name,...args);
+WxSc.Dict.Set = (key,a,u,v) => WxSc.Refl.Set(WxSc.Const.SocketConnection,`WxOs.${key}.${a}`,u,v);
+WxSc.Dict.Get = (key,a=undefined) => WxSc.Refl.Get(WxSc.Const.SocketConnection,`WxOs.${key}${a ? `.${a}` : ''}`);
+WxSc.Dict.Func = (key,method,...args) => WxSc.Refl.Func(WxSc.Const.SocketConnection,`WxOs.${key}.${method}`,...args);
+WxSc.Dict.Tmp = (key,method,key2,...args) => WxSc.Refl.Tmp(WxSc.Const.SocketConnection,`WxOs.${key}.${method}`,key2,...args);
+WxSc.Dict.Del = (k) => document.Client.WxDelObj(k);
 
-WxFightHandler.Private.ClearBagAsync = () => new Promise(res => { WxFightHandler.Private._as3Callback = res; document.Client.WxClearBag(); });
-WxFightHandler.Private.SetBag1Async = bag1 => new Promise(res => { WxFightHandler.Private._as3Callback = res; document.Client.WxSetBag1(bag1); });
-WxFightHandler.Private.SetBag2Async = bag2 => new Promise(res => { WxFightHandler.Private._as3Callback = res; document.Client.WxSetBag2(bag2); });
-WxFightHandler.Utils.SetPetBagAsync = async (bag1, bag2 = []) => {
-  await WxFightHandler.Private.ClearBagAsync();
-  await WxFightHandler.Private.SetBag1Async(bag1);
-  await WxFightHandler.Private.SetBag2Async(bag2);
-  await WxFightHandler.Utils.DelayAsync(1000);
+WxSc.Dict.AddCall = (n,r,f) => {
+  WxSc.Priv[n] = f;
+  document.Client.WxAddFunc(n,r);
+}
+
+WxSc.Const = {}
+WxSc.Const.StateKey = 'LanBaiState';
+WxSc.Const.DelayMs = 200;
+WxSc.Const.PetManager = 'com.robot.core.manager.PetManager';
+WxSc.Const.MainManager = 'com.robot.core.manager.MainManager';
+WxSc.Const.SocketConnection = 'com.robot.core.net.SocketConnection';
+
+WxSc.Util.GetBagPetInfos = () => WxSc.Refl.Get(WxSc.Const.PetManager,'allInfos');
+WxSc.Util.GetBag1 = () => WxSc.Refl.Func(WxSc.Const.PetManager,'getBagMap');
+WxSc.Util.GetBag2 = () => WxSc.Refl.Func(WxSc.Const.PetManager,'getSecondBagMap');
+
+WxSc.Priv.ClearBagAsync = () => new Promise(res => { WxSc.Priv.res = res; document.Client.WxClearBag(); });
+WxSc.Priv.SetBag1Async = bag1 => new Promise(res => { WxSc.Priv.res = res; document.Client.WxSetBag1(bag1); });
+WxSc.Priv.SetBag2Async = bag2 => new Promise(res => { WxSc.Priv.res = res; document.Client.WxSetBag2(bag2); });
+WxSc.Util.SetPetBagAsync = async (bag1, bag2 = []) => {
+  await WxSc.Priv.ClearBagAsync();
+  await WxSc.Priv.SetBag1Async(bag1);
+  await WxSc.Priv.SetBag2Async(bag2);
+  await WxSc.Util.DelayAsync(1000);
 };
 
-WxFightHandler.Utils.GetStoragePetsAsync = () => new Promise(resolve => {
-  WxFightHandler.Private._as3Callback = resolve;
+WxSc.Util.GetStoragePetsAsync = () => new Promise(resolve => {
+  WxSc.Priv.res = resolve;
   document.Client.WxGetStoragePets();
 });
 
-WxFightHandler.Utils.GetClothes = () => {
-  const cs = WxFightHandler.Reflection.Get(WxFightHandler.Const.MainManager,'actorInfo.clothes');
+WxSc.Util.GetClothes = () => {
+  const cs = WxSc.Refl.Get(WxSc.Const.MainManager,'actorInfo.clothes');
   let result = [];
   for (let c of cs) {
     result.push(c.id);
@@ -53,65 +66,101 @@ WxFightHandler.Utils.GetClothes = () => {
   }
   return result;
 }
-WxFightHandler.Utils.ChangeCloth = clothes => document.Client.WxChangeCloth(clothes);
-
-WxFightHandler.Utils.GetTitle = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.MainManager,'actorInfo.curTitle');
-WxFightHandler.Utils.SetTitle = title => document.Client.WxSetTitle(title);
-
-WxFightHandler.Private.RoundReset = () => WxFightHandler.Private.Round = 0;
-WxFightHandler.Utils.GetRound = () => WxFightHandler.Private.Round;
-
-WxFightHandler.Private.ShowRound = (hp1,hp2) => { WxFightHandler.Private.Round += 1; ipcRenderer.send('set-title', `${hp1}% (${WxFightHandler.Private.Round}) ${hp2}%`); };
-
-WxFightHandler.Utils.UseSkill = skillID => document.Client.WxUseSkill(skillID);
-WxFightHandler.Utils.ChangePet = petCatchTime => WxFightHandler.Reflection.Action(WxFightHandler.Const.SocketConnection,'WxChangePet',false,petCatchTime);
-WxFightHandler.Utils.UsePetItem = itemID => document.Client.WxUsePetItem(itemID);
-WxFightHandler.Utils.UsePetItem10PP = () => {
-  WxFightHandler.Utils.ItemBuy(300017);
-  WxFightHandler.Utils.UsePetItem(300017);
-};
-WxFightHandler.Utils.ItemBuy = itemID => document.Client.WxItemBuy(itemID);
-
-WxFightHandler.Utils.StopAutoFight = () => { WxFightHandler.OnFirstRound = WxFightHandler.OnUseSkill = WxFightHandler.OnChangePet = WxFightHandler.OnFightOver = () => {}; };
-
-WxFightHandler.Utils.GetFightingPetID = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.SocketConnection,'WxFightingPetID');
-WxFightHandler.Utils.GetFightingPetCatchTime = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.SocketConnection,'WxFightingPetCatchTime');
-WxFightHandler.Utils.GetFightingPets = () => WxFightHandler.Reflection.Get(WxFightHandler.Const.SocketConnection,'WxFightingPets');
-WxFightHandler.Utils.ChangePetByID = ids => document.Client.WxChangePetByID(ids);
-
-WxFightHandler.Utils.DelayAsync = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-WxFightHandler.Utils.Send = (commandID, ...args) => {
-  let ps = [];
-  for (let arg of args) {
-    ps.push(false); ps.push(arg);
+WxSc.Util.ChangeCloth = (clothes,isNet=true) => {
+  const k1 = 'cl', k2 = 'it', k3 = 'be';
+  WxSc.Dict.Add(k1,'Array');
+  for (let i=0; i<clothes.length; i+=2) {
+    if (clothes[i] === 0) continue;
+    WxSc.Dict.Add(k2,'com.robot.core.info.clothInfo.PeopleItemInfo',false,clothes[i],false,clothes[i+1]);
+    WxSc.Dict.Func(k1,'push',true,k2);
   }
-  WxFightHandler.Reflection.Action(WxFightHandler.Const.SocketConnection,'send',false,commandID, ...ps);
+  WxSc.Dict.Add(k3,'com.robot.core.behavior.ChangeClothBehavior',true,k1,false,isNet);
+  WxSc.Refl.Func(WxSc.Const.MainManager,'actorModel.execBehavior',true,k3);
 }
-WxFightHandler.Utils.SendAsync = (commandID, parameterArray) => new Promise(resolve => {
-  WxFightHandler.Private._as3Callback = resolve;
+
+WxSc.Util.GetTitle = () => WxSc.Refl.Get(WxSc.Const.MainManager,'actorInfo.curTitle');
+WxSc.Util.SetTitle = title => document.Client.WxSetTitle(title);
+
+WxSc.Util.GetRound = () => WxSc.Priv.Round;
+
+WxSc.Util.UseSkill = skillID => WxSc.Util.Send(2405,skillID);
+WxSc.Util.ChangePet = ct => {
+  if (WxSc.Priv._fHP > 0) WxSc.Priv._posiCh = true;
+  WxSc.Util.Send(2407,ct);
+}
+WxSc.Util.UsePetItem = itemID => WxSc.Util.Send(2406,WxSc.Priv._fCT,itemID,0);
+WxSc.Util.UsePetItem10PP = () => {
+  WxSc.Util.ItemBuy(300017);
+  WxSc.Util.UsePetItem(300017);
+};
+WxSc.Util.ItemBuy = (itemID,c=1) => WxSc.Util.Send(2601,itemID,c);
+
+WxSc.Util.StopAutoFight = () => { WxSc.OnFirstRound = WxSc.OnUseSkill = WxSc.OnChangePet = WxSc.OnFightOver = () => {}; };
+
+WxSc.Util.GetFightingPetID = () => WxSc.Priv._fID;
+WxSc.Util.GetFightingPetCatchTime = () => WxSc.Priv._fCT;
+WxSc.Util.GetFightingPets = () => WxSc.Priv._fPets;
+WxSc.Util.ChangePetByID = ids => {
+  if (ids.length > 0) {
+    for (let id of ids) {
+      for (let p of WxSc.Priv._fPets) {
+        if (p.id === id && p.hp > 0 && p.catchTime != WxSc.Priv._fCT) {
+          WxSc.Util.ChangePet(p.catchTime);
+          return;
+        }
+      }
+    }
+  }
+  for (let p of WxSc.Priv._fPets) {
+    if (p.hp > 0 && p.catchTime != WxSc.Priv._fCT) {
+      WxSc.Util.ChangePet(p.catchTime);
+      return;
+    }
+  }
+}
+
+WxSc.Util.DelayAsync = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+WxSc.Util.Send = (commandID, ...args) => {
+  let ps = [];
+  for (let arg of args) { ps.push(false); ps.push(arg); }
+  WxSc.Refl.Func(WxSc.Const.SocketConnection,'send',false,commandID, ...ps);
+}
+WxSc.Util.SendAsync = (commandID, parameterArray) => new Promise(resolve => {
+  WxSc.Priv.res = resolve;
   document.Client.WxSendWithCallback2(commandID, parameterArray);
 });
 
-WxFightHandler.Utils.GetPetNameByID = petID => WxFightHandler.Reflection.Func('com.robot.core.config.xml.PetXMLInfo','getName',false,petID);
-WxFightHandler.Utils.GetSkillNameByID = skillID => WxFightHandler.Reflection.Func('com.robot.core.config.xml.SkillXMLInfo','getName',false,skillID);
+WxSc.Util.GetPetNameByID = petID => WxSc.Refl.Func('com.robot.core.config.xml.PetXMLInfo','getName',false,petID);
+WxSc.Util.GetSkillNameByID = skillID => WxSc.Refl.Func('com.robot.core.config.xml.SkillXMLInfo','getName',false,skillID);
 
-WxFightHandler.Utils.AutoFight = id => document.Client.WxAutoFight(id);
+WxSc.Util.SetIsHidePetFight = h => WxSc.Refl.Set('com.robot.app.fight.FightManager','petFightClass',false,(h ? 'PetFightDLL' : 'PetFightDLL_201308'));
+WxSc.Util.SetIsAutoCure = cure => WxSc.Priv._cure = cure;
+WxSc.Util.CurePet20HP = () => {
+  WxSc.Util.ItemBuy(300011,6);
+  WxSc.Util.ItemBuy(300017,6);
+  for (let p of WxSc.Util.GetBag1()) {
+    WxSc.Util.Send(2326,p.catchTime,300011);
+    WxSc.Util.Send(2326,p.catchTime,300017);
+  }
+}
+WxSc.Util.CurePetAll = () => {
+  const p = WxSc.Refl.Func(WxSc.Const.PetManager,'getBagMap',false,true);
+  for (let i of p) WxSc.Util.Send(2310,i.catchTime);
+}
+WxSc.Util.LowHP = () => {
+  const c = ((new Date()).getUTCHours() + 8) % 24;
+  WxSc.Util.Send(41129,(c < 12 || c >= 15) ? 8692 : 8694);
+}
+WxSc.Util.SimpleAlarm = msg => WxSc.Refl.Func('com.robot.core.ui.alert.SimpleAlarm','show',false,msg);
 
-WxFightHandler.Utils.SetIsHidePetFight = h => WxFightHandler.Reflection.Set('com.robot.app.fight.FightManager','petFightClass',(h ? 'PetFightDLL' : 'PetFightDLL_201308'));
-WxFightHandler.Utils.SetIsAutoCure = cure => WxFightHandler.Reflection.Set(WxFightHandler.Const.SocketConnection,'WxIsAutoCure',cure);
-WxFightHandler.Utils.CurePet20HP = () => document.Client.WxCurePet20HP();
-WxFightHandler.Utils.CurePetAll = () => WxFightHandler.Reflection.Action(WxFightHandler.Const.SocketConnection,'WxCurePetAll');
-WxFightHandler.Utils.LowHP = () => document.Client.WxLowHP();
-WxFightHandler.Utils.SimpleAlarm = msg => WxFightHandler.Reflection.Action('com.robot.core.ui.alert.SimpleAlarm','show',false,msg);
-
-WxFightHandler.Utils.CopyFireAsync = async (fireType = null) => {
+WxSc.Util.CopyFireAsync = async (fireType = null) => {
   // 从地图上借
-  if (await new Promise((resolve) => {
-    WxFightHandler.Private._as3Callback = resolve;
+  if (await new Promise(res => {
+    WxSc.Priv.res = res;
     document.Client.WxCopyFireFromMap(fireType);
   })) {
-    WxFightHandler.Utils.SimpleAlarm('借火成功');
+    WxSc.Util.SimpleAlarm('借火成功');
     return true;
   }
 
@@ -152,50 +201,108 @@ WxFightHandler.Utils.CopyFireAsync = async (fireType = null) => {
   let sub_key = dateToYYYYMMDDInt(date);
   // console.log(sub_key);
   let len = await new Promise(resolve => {
-    WxFightHandler.Private._as3Callback = resolve;
+    WxSc.Priv.res = resolve;
     document.Client.WxGetRankListLen(key, sub_key);
   });
   len -= 100;
   for (let i = 0; i <= len; i += 100) {
-    WxFightHandler.Utils.SimpleAlarm(`${i}/${len}`);
+    WxSc.Util.SimpleAlarm(`${i}/${len}`);
     if (await new Promise(resolve => {
-      WxFightHandler.Private._as3Callback = resolve;
+      WxSc.Priv.res = resolve;
       document.Client.WxCopyFireFromRank(key, sub_key, i, fireType);
     })) {
-      WxFightHandler.Utils.SimpleAlarm('借火成功');
+      WxSc.Util.SimpleAlarm('借火成功');
       return true;
     }
   }
-  WxFightHandler.Utils.SimpleAlarm('借火失败');
+  WxSc.Util.SimpleAlarm('借火失败');
   return false;
 };
 
-WxFightHandler.Utils.GetActivityValueAsync = (name,key) => new Promise(resolve => {
-  WxFightHandler.Private._as3Callback = resolve;
-  document.Client.WxGetActivityValue(name,key); 
-});
+WxSc.Util.ChangeMap = id => WxSc.Refl.Func('com.robot.core.manager.MapManager','changeMap',false,id);
+WxSc.Util.ShowAppModule = id => WxSc.Refl.Func('com.robot.core.manager.ModuleManager','showAppModule',false,id);
 
-WxFightHandler.Utils.ChangeMap = id => WxFightHandler.Reflection.Action('com.robot.core.manager.MapManager','changeMap',false,id);
-WxFightHandler.Utils.ShowAppModule = id => WxFightHandler.Reflection.Action('com.robot.core.manager.ModuleManager','showAppModule',false,id);
-
-WxFightHandler.Utils.StateSave = k => {
+WxSc.Util.StateSave = k => {
   let s = {};
-  s.clothes = WxFightHandler.Utils.GetClothes();
-  s.title = WxFightHandler.Utils.GetTitle();
-  s.bag1 = WxFightHandler.Utils.GetBag1().map(pet => pet.catchTime);
-  s.bag2 = WxFightHandler.Utils.GetBag2().map(pet => pet.catchTime);
+  s.clothes = WxSc.Util.GetClothes();
+  s.title = WxSc.Util.GetTitle();
+  s.bag1 = WxSc.Util.GetBag1().map(pet => pet.catchTime);
+  s.bag2 = WxSc.Util.GetBag2().map(pet => pet.catchTime);
   let st = {};
-  if (localStorage.getItem(WxFightHandler.Const.StateKey)!=null) st = JSON.parse(localStorage.getItem(WxFightHandler.Const.StateKey));
+  if (localStorage.getItem(WxSc.Const.StateKey)!=null) st = JSON.parse(localStorage.getItem(WxSc.Const.StateKey));
   st[k] = s;
-  localStorage.setItem(WxFightHandler.Const.StateKey, JSON.stringify(st));
-  WxFightHandler.Utils.SimpleAlarm('ok');
+  localStorage.setItem(WxSc.Const.StateKey, JSON.stringify(st));
+  WxSc.Util.SimpleAlarm('ok');
 }
-WxFightHandler.Utils.StateLoadAsync = async k => {
+WxSc.Util.StateLoadAsync = async k => {
   try {
-    let s = JSON.parse(localStorage.getItem(WxFightHandler.Const.StateKey))[k];
-    WxFightHandler.Utils.ChangeCloth(s.clothes);
-    WxFightHandler.Utils.SetTitle(s.title);
-    await WxFightHandler.Utils.SetPetBagAsync(s.bag1, s.bag2);
-    WxFightHandler.Utils.SimpleAlarm('ok');
+    let s = JSON.parse(localStorage.getItem(WxSc.Const.StateKey))[k];
+    WxSc.Util.ChangeCloth(s.clothes);
+    WxSc.Util.SetTitle(s.title);
+    await WxSc.Util.SetPetBagAsync(s.bag1, s.bag2);
+    WxSc.Util.SimpleAlarm('ok');
   } catch {alert(`${k} 不存在`)}
+}
+
+// 对战
+WxSc._in = () => {
+  WxSc.Dict.AddCall('_start','_stIn',() => {
+    WxSc.Priv.Round = 0;
+    WxSc.Priv._posiCh = false; // 主动切换精灵
+    WxSc.Priv._fPets = WxSc.Dict.Get('_rdData');
+    const info = WxSc.Dict.Get('_stIn','0.data');
+    WxSc.Priv._fCT = info.myInfo.catchTime;
+    WxSc.Priv._fID = info.myInfo.petID;
+    WxSc.Priv._fHP = info.myInfo.hp;
+    WxSc.OnFirstRound(info);
+  });
+  WxSc.Refl.Func(WxSc.Const.SocketConnection,'addCmdListener',false,2504,true,'_start'); // NOTE_START_FIGHT
+  WxSc.Dict.AddCall('_skill','_skIn',() => {
+    const info = WxSc.Dict.Get('_skIn','0.data');
+    let my, en;
+    const isFi = (info.firstAttackInfo.userID === WxSc.Refl.Get(WxSc.Const.MainManager,'actorInfo.userID'));
+    if (isFi) {
+      my = info.firstAttackInfo;
+      en = info.secondAttackInfo; 
+    }
+    else {
+      my = info.secondAttackInfo;
+      en = info.firstAttackInfo; 
+    }
+    WxSc.Priv._fHP = my.remainHP;
+    for (let i=0; i<WxSc.Priv._fPets.length; ++i) {
+      if (WxSc.Priv._fPets[i].catchTime === WxSc.Priv._fCT) {
+        WxSc.Priv._fPets[i].hp = my.remainHP;
+        break;
+      }
+    }
+    for (let p of my.changehps) {
+      for (let i=0; i<WxSc.Priv._fPets.length; ++i) {
+        if (WxSc.Priv._fPets[i].catchTime === p.id) {
+          WxSc.Priv._fPets[i].hp = p.hp;
+          break;
+        }
+      }
+    }
+    WxSc.Priv.ShowRound((my.maxHp===0 ? 0 : (my.remainHP / my.maxHp * 100).toFixed(1)), (en.maxHp===0? 0 : (en.remainHP / en.maxHp * 100).toFixed(1)));
+    if (en.remainHP === 0 && en.changehps.every(p => p.hp === 0) || my.remainHP === 0 && my.changehps.every(p => p.hp === 0)) return;
+    WxSc.OnUseSkill(my,en,isFi);
+  });
+  WxSc.Refl.Func(WxSc.Const.SocketConnection,'addCmdListener',false,2505,true,'_skill'); // NOTE_USE_SKILL
+  WxSc.Dict.AddCall('_ChPet','_chIn',() => {
+    const info = WxSc.Dict.Get('_chIn','0.data');
+    if (info.userID === WxSc.Refl.Get(WxSc.Const.MainManager,'actorInfo.userID')) {
+      WxSc.Priv._fCT = info.catchTime;
+      WxSc.Priv._fID = info.petID;
+      WxSc.Priv._fHP = info.hp;
+      if (WxSc.Priv._posiCh) WxSc.Priv._posiCh = false; // 主动切换
+      else WxSc.OnChangePet(info); // 死亡切换
+    }
+  });
+  WxSc.Refl.Func(WxSc.Const.SocketConnection,'addCmdListener',false,2407,true,'_ChPet'); // CHANGE_PET
+  WxSc.Dict.AddCall('_over','_ovIn',() => {
+    if (WxSc.Priv._cure) for (let i of WxSc.Priv._fPets) WxSc.Util.Send(2310,i.catchTime);
+    WxSc.OnFightOver(WxSc.Dict.Get('_ovIn','0.data')); 
+  });
+  WxSc.Refl.Func(WxSc.Const.SocketConnection,'addCmdListener',false,2506,true,'_over'); // FIGHT_OVER
 }

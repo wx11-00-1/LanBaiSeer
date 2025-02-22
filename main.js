@@ -254,7 +254,7 @@ app.whenReady().then(() => {
     if (url.match('https:\\/\\/seer\\.61\\.com\\/resource\\/fightResource\\/pet\\/swf\\/(\\d{4,})\\.swf\\?')) {
       if (conf.isRandomSkin) {
         const randID = conf.skinIDs[Math.floor(Math.random() * conf.skinIDs.length)];
-        mainWindow.webContents.executeJavaScript(`console.log(${randID},WxFightHandler.Utils.GetPetNameByID(${randID}))`)
+        mainWindow.webContents.executeJavaScript(`console.log(${randID},WxSc.Util.GetPetNameByID(${randID}))`)
         request.url = `https://seer.61.com/resource/fightResource/pet/swf/${randID}.swf`;
       }
       interceptRequestRemote(request, callback);

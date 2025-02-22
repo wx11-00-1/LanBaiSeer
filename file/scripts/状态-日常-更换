@@ -1,1 +1,1 @@
-WxFightHandler.Utils.StateLoadAsync('日常')
+WxSc.Util.StateLoadAsync('日常')

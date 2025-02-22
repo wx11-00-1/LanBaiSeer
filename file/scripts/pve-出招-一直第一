@@ -1,32 +1,32 @@
-WxFightHandler.OnFirstRound = () => {
-  let firstPetCatchtime = WxFightHandler.Utils.GetFightingPetCatchTime();
-  for (let pet of WxFightHandler.Utils.GetFightingPets()) {
+WxSc.OnFirstRound = () => {
+  let firstPetCatchtime = WxSc.Util.GetFightingPetCatchTime();
+  for (let pet of WxSc.Util.GetFightingPets()) {
     if (pet.catchTime === firstPetCatchtime) {
-      WxFightHandler.Utils.UseSkill(pet.skillArray[0]);
+      WxSc.Util.UseSkill(pet.skillArray[0]);
       break;
     }
   }
 };
 
-WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs);
+WxSc.OnUseSkill = async (mySkillInfo) => {
+  await WxSc.Util.DelayAsync(WxSc.Const.DelayMs);
   if (mySkillInfo.remainHP !== 0) {
     let skillList = mySkillInfo.skillList;
     if (skillList[0][1] > 0) {
-      WxFightHandler.Utils.UseSkill(skillList[0][0]);
+      WxSc.Util.UseSkill(skillList[0][0]);
     }
     else {
-      WxFightHandler.Utils.UsePetItem10PP();
+      WxSc.Util.UsePetItem10PP();
     }
   }
   else {
-    WxFightHandler.Utils.ChangePetByID([]);
+    WxSc.Util.ChangePetByID([]);
   }
 };
 
-WxFightHandler.OnChangePet = (petInfo) => {
+WxSc.OnChangePet = (petInfo) => {
   let skillList = petInfo.skillList;
-  WxFightHandler.Utils.UseSkill(skillList[0][0]);
+  WxSc.Util.UseSkill(skillList[0][0]);
 };
 
-WxFightHandler.OnFightOver = () => {};
+WxSc.OnFightOver = () => {};

@@ -1,28 +1,28 @@
-WxFightHandler.OnFirstRound = () => {
-  WxFightHandler.阴晴圆缺 = 36354;
-  WxFightHandler.悲欢离合 = 36353;
-  WxFightHandler.flag = true;
-  WxFightHandler.Utils.UseSkill(WxFightHandler.阴晴圆缺);
+WxSc.OnFirstRound = () => {
+  WxSc.阴晴圆缺 = 36354;
+  WxSc.悲欢离合 = 36353;
+  WxSc.flag = true;
+  WxSc.Util.UseSkill(WxSc.阴晴圆缺);
 };
 
-WxFightHandler.OnUseSkill = async (mySkillInfo) => {
-  await WxFightHandler.Utils.DelayAsync(WxFightHandler.Const.DelayMs); 
+WxSc.OnUseSkill = async (mySkillInfo) => {
+  await WxSc.Util.DelayAsync(WxSc.Const.DelayMs); 
   if (mySkillInfo.remainHP === 0) {
     console.log('GG!');
     return;
   }
   for (var skill of mySkillInfo.skillList) {
-    if (skill[0] === WxFightHandler.阴晴圆缺) {
+    if (skill[0] === WxSc.阴晴圆缺) {
       if (skill[1] === 0) {
-        WxFightHandler.Utils.UsePetItem10PP();
-        WxFightHandler.flag = false;
+        WxSc.Util.UsePetItem10PP();
+        WxSc.flag = false;
         return;
       } else { break; }
     }
   }
-  WxFightHandler.Utils.UseSkill(WxFightHandler.flag ? WxFightHandler.悲欢离合 : WxFightHandler.阴晴圆缺);
-  WxFightHandler.flag = !WxFightHandler.flag;
+  WxSc.Util.UseSkill(WxSc.flag ? WxSc.悲欢离合 : WxSc.阴晴圆缺);
+  WxSc.flag = !WxSc.flag;
 };
 
-WxFightHandler.OnChangePet = () => {};
-WxFightHandler.OnFightOver = () => {};
+WxSc.OnChangePet = () => {};
+WxSc.OnFightOver = () => {};

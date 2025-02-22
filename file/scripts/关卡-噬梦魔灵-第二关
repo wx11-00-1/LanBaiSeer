@@ -1,143 +1,141 @@
 // 打开开发者工具，在 console 页面查看指引
 // 制作过程视频：BV1fm8nexENV
-(async () => {
-  function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
-  function ReadByte(data) { return data.byteArray[data.position++]; }
+function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
+function ReadByte(data) { return data.byteArray[data.position++]; }
 
-  async function getMultiValue(arr) {
-    arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
-    let data = {};
-    data.byteArray = await WxFightHandler.Utils.SendAsync(46046, arr);
-    data.position = 0;
-    // 将收到的包解析成数组
-    let result = [];
-    let arrayLength = ReadInt(data);
-    for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
-    return result;
+async function getMultiValue(arr) {
+  arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
+  let data = {};
+  data.byteArray = await WxSc.Util.SendAsync(46046, arr);
+  data.position = 0;
+  // 将收到的包解析成数组
+  let result = [];
+  let arrayLength = ReadInt(data);
+  for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
+  return result;
+}
+
+function getBit(p1, p2) { return (p1 >> (p2 - 1)) & 1; }
+function getByte(p1, p2) { return (p1 >> (8 * p2)) & 255; }
+
+async function getMapInfo(curMap) {
+  let mapObj = {};
+
+  let arr = await getMultiValue([
+    103296 + (curMap - 1) / 4,
+    103309 + curMap - 1,
+    103360 + (curMap - 1) / 32
+  ]);
+  arr[0] = getByte(arr[0], (curMap - 1) % 4);
+  if (arr[0] < 5) {
+    // 一共 4 种颜色的球，arr[0] 分别为 1 2 3 4 时，表示地图上有对应的球
+    if (arr[0] > 0) {
+      mapObj.ballType = arr[0];
+    }
+  }
+  else if (arr[0] < 9) {
+    // 地图上有井，种类为 (arr[0] - 5)
+    // 数值从 0 开始，与球的标号不同，但是按照顺序，颜色还是对应得上的
+    mapObj.holeType = arr[0] - 5;
+  }
+  else {
+    // 地图上有 NPC
   }
 
-  function getBit(p1, p2) { return (p1 >> (p2 - 1)) & 1; }
-  function getByte(p1, p2) { return (p1 >> (8 * p2)) & 255; }
+  // 每张地图都有 4 个门
+  // doors 数组中，从左到右依次对应界面上显示的门
+  // 0 表示此路不通
+  // 其他数字，在不同的地图中相同数字的门，表示互相连通
+  mapObj.doors = [];
+  for (let i = 1; i <= 4; ++i) {
+    mapObj.doors[i - 1] = getByte(arr[1], i - 1);
+  }
 
-  async function getMapInfo(curMap) {
-    let mapObj = {};
+  return mapObj;
+}
 
-    let arr = await getMultiValue([
-      103296 + (curMap - 1) / 4,
-      103309 + curMap - 1,
-      103360 + (curMap - 1) / 32
-    ]);
-    arr[0] = getByte(arr[0], (curMap - 1) % 4);
-    if (arr[0] < 5) {
-      // 一共 4 种颜色的球，arr[0] 分别为 1 2 3 4 时，表示地图上有对应的球
-      if (arr[0] > 0) {
-        mapObj.ballType = arr[0];
-      }
-    }
-    else if (arr[0] < 9) {
-      // 地图上有井，种类为 (arr[0] - 5)
-      // 数值从 0 开始，与球的标号不同，但是按照顺序，颜色还是对应得上的
-      mapObj.holeType = arr[0] - 5;
+async function findPath() {
+  if (window.allMapInfo11813 === undefined) {
+    window.allMapInfo11813 = [];
+    for (let i = 1; i < 21; ++i) { window.allMapInfo11813.push(await getMapInfo(i)); }
+    console.log('世界地图', window.allMapInfo11813);
+  }
+
+  // 当前地图
+  let globalObj = {};
+  let arr = await getMultiValue([103294, 103295]);
+  globalObj.curMap = arr[0] & 255; // 地图标号（一共 20 张地图，标号从 1 开始）
+  globalObj.curEnergy = arr[0] >> 8 & 255; // 灵魂能量
+  globalObj.curHasBall = arr[0] >> 16 & 255;
+  globalObj.hasTransferNum = arr[0] >> 24 & 255; // 已走过的步数
+
+  globalObj.hasBall = []
+  for (let i = 1; i <= 4; ++i) {
+    if (getBit(arr[1], i) == 1) {
+      globalObj.hasBall[i - 1] = 1;
     }
     else {
-      // 地图上有 NPC
+      globalObj.hasBall[i - 1] = 0;
     }
-
-    // 每张地图都有 4 个门
-    // doors 数组中，从左到右依次对应界面上显示的门
-    // 0 表示此路不通
-    // 其他数字，在不同的地图中相同数字的门，表示互相连通
-    mapObj.doors = [];
-    for (let i = 1; i <= 4; ++i) {
-      mapObj.doors[i - 1] = getByte(arr[1], i - 1);
-    }
-
-    return mapObj;
   }
 
-  async function findPath() {
-    if (window.allMapInfo11813 === undefined) {
-      window.allMapInfo11813 = [];
-      for (let i = 1; i < 21; ++i) { window.allMapInfo11813.push(await getMapInfo(i)); }
-      console.log('世界地图', window.allMapInfo11813);
+  globalObj.doors = window.allMapInfo11813[globalObj.curMap - 1].doors;
+
+  // console.log(globalObj);
+  console.log(`当前地图上，门的编号（从左到右）分别是：[${globalObj.doors.filter(door => door!=0).join(' ')}]`);
+  if (globalObj.curHasBall === 0) {
+    console.log('寻找最近的球');
+    let path = bfs(globalObj.curMap, m => ('ballType' in m && globalObj.hasBall[m.ballType-1] === 0));
+    if (path.length === 0) {
+      console.log('请捡起当前地图上的球');
     }
-
-    // 当前地图
-    let globalObj = {};
-    let arr = await getMultiValue([103294, 103295]);
-    globalObj.curMap = arr[0] & 255; // 地图标号（一共 20 张地图，标号从 1 开始）
-    globalObj.curEnergy = arr[0] >> 8 & 255; // 灵魂能量
-    globalObj.curHasBall = arr[0] >> 16 & 255;
-    globalObj.hasTransferNum = arr[0] >> 24 & 255; // 已走过的步数
-
-    globalObj.hasBall = []
-    for (let i = 1; i <= 4; ++i) {
-      if (getBit(arr[1], i) == 1) {
-        globalObj.hasBall[i - 1] = 1;
-      }
-      else {
-        globalObj.hasBall[i - 1] = 0;
-      }
-    }
-
-    globalObj.doors = window.allMapInfo11813[globalObj.curMap - 1].doors;
-
-    // console.log(globalObj);
-    console.log(`当前地图上，门的编号（从左到右）分别是：[${globalObj.doors.filter(door => door!=0).join(' ')}]`);
-    if (globalObj.curHasBall === 0) {
-      console.log('寻找最近的球');
-      let path = bfs(globalObj.curMap, m => ('ballType' in m && globalObj.hasBall[m.ballType-1] === 0));
-      if (path.length === 0) {
-        console.log('请捡起当前地图上的球');
-      }
-      else if (path.length > window.allMapInfo11813.length) {
-        console.log('剩下的球无法获取，请先耗尽灵魂能量，重置关卡');
-      }
-      else {
-        console.log(`请进入 ${path[0]} 号门`);
-      }
+    else if (path.length > window.allMapInfo11813.length) {
+      console.log('剩下的球无法获取，请先耗尽灵魂能量，重置关卡');
     }
     else {
-      console.log('寻找井');
-      let path = bfs(globalObj.curMap, m => ('holeType' in m && m.holeType === globalObj.curHasBall-1));
-      if (path.length === 0) {
-        console.log('请将球投入当前地图上的井');
-      }
-      else if (path.length > window.allMapInfo11813.length) {
-        console.log('剩下的井所在位置无法到达，请先耗尽灵魂能量，重置关卡');
-      }
-      else {
-        console.log(`请进入 ${path[0]} 号门`);
-      }
+      console.log(`请进入 ${path[0]} 号门`);
     }
   }
+  else {
+    console.log('寻找井');
+    let path = bfs(globalObj.curMap, m => ('holeType' in m && m.holeType === globalObj.curHasBall-1));
+    if (path.length === 0) {
+      console.log('请将球投入当前地图上的井');
+    }
+    else if (path.length > window.allMapInfo11813.length) {
+      console.log('剩下的井所在位置无法到达，请先耗尽灵魂能量，重置关卡');
+    }
+    else {
+      console.log(`请进入 ${path[0]} 号门`);
+    }
+  }
+}
 
-  function bfs(curMap, predicate) {
-    let visited = (new Array(window.allMapInfo11813.length)).fill(null); // 记录路径
-    let queue = [];
-    queue.push(curMap-1);
-    visited[curMap-1] = [];
+function bfs(curMap, predicate) {
+  let visited = (new Array(window.allMapInfo11813.length)).fill(null); // 记录路径
+  let queue = [];
+  queue.push(curMap-1);
+  visited[curMap-1] = [];
 
-    while (queue.length > 0) {
-      let cur = queue.shift();
-      if (predicate(window.allMapInfo11813[cur])) {
-        return visited[cur];
-      }
-      for (let door of window.allMapInfo11813[cur].doors) {
-        if (door === 0) continue;
-        // 若两个地图有相同编号的门，则说明这两个地图相互连通
-        for (let i = 0; i < window.allMapInfo11813.length; ++i) {
-          if (i === cur || visited[i] != null) continue;
-          if (window.allMapInfo11813[i].doors.indexOf(door) != -1) {
-            queue.push(i);
-            visited[i] = visited[cur].concat([door]);
-          }
+  while (queue.length > 0) {
+    let cur = queue.shift();
+    if (predicate(window.allMapInfo11813[cur])) {
+      return visited[cur];
+    }
+    for (let door of window.allMapInfo11813[cur].doors) {
+      if (door === 0) continue;
+      // 若两个地图有相同编号的门，则说明这两个地图相互连通
+      for (let i = 0; i < window.allMapInfo11813.length; ++i) {
+        if (i === cur || visited[i] != null) continue;
+        if (window.allMapInfo11813[i].doors.indexOf(door) != -1) {
+          queue.push(i);
+          visited[i] = visited[cur].concat([door]);
         }
       }
     }
-    return new Array(window.allMapInfo11813.length+1);
   }
+  return new Array(window.allMapInfo11813.length+1);
+}
 
-  console.log('=====');
-  await findPath();
-})();
+console.log('=====');
+await findPath();
