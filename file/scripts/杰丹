@@ -1,0 +1,114 @@
+const catchNum = 5;
+let caughtNum = 0;
+let onePetCt;
+const infos = WxSc.Util.GetBagPetInfos();
+if (infos.length === 0) {
+  // 从仓库中随便找出一个精灵
+  const pets = await WxSc.Util.GetStoragePetsAsync();
+  if (pets.length === 0) {
+    alert('获取仓库精灵失败，已停止运行');
+    return;
+  }
+  onePetCt = pets[0].catchTime;
+  await WxSc.Util.SetPetBagAsync([onePetCt]);
+}
+else if (infos.length != 1) {
+  // 开始时背包只留一个精灵
+  onePetCt = infos[0].catchTime;
+  await WxSc.Util.SetPetBagAsync([onePetCt]);
+}
+
+// 获取胶囊数量
+function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
+async function updateItems(arr) {
+  arr.unshift(arr.length);
+  let data = {};
+  data.byteArray = await WxSc.Util.SendAsync(42399, arr); // MULTI_ITEM_LIST
+  data.position = 0;
+  let result = [];
+  let arrayLength = ReadInt(data);
+  for (let i = 0; i < arrayLength; ++i) {
+    let item = {};
+    item.itemID = ReadInt(data);
+    item.itemNum = ReadInt(data);
+    item.leftTime = ReadInt(data);
+    item._itemLevel = ReadInt(data);
+    item.updateTime = ReadInt(data);
+    result.push(item);
+  }
+  return result;
+}
+const item = await updateItems([300505]);
+if (item.length === 0) {
+  for (let i = 0; i < 6; i++) {
+    WxSc.Util.ItemBuy(300505); 
+  }
+}
+
+const PET_ID = 632;
+const keyFunc = 'catch', keyResult = 'catchRes', SocketConnection = 'com.robot.core.net.SocketConnection', MAP_OGRE_LIST = 2004, PetManager = 'com.robot.core.manager.PetManager';
+
+WxSc.OnFirstRound = async () => {
+  // 对战首回合，使用特殊胶囊捕捉
+  WxSc.Util.Send(2409,300505);
+  WxSc.Util.ItemBuy(300505);
+}
+
+WxSc.Util.SetIsHidePetFight(true); // 隐藏战斗界面
+
+(() => {
+  const keyFunc2409 = 'catch2409', keyResult2409 = 'catchRes2409';
+  try {
+    WxSc.Refl.Func(SocketConnection,'removeCmdListener',false,MAP_OGRE_LIST,true,keyFunc); // 防止重复
+    WxSc.Refl.Func(SocketConnection,'removeCmdListener',false,2409,true,keyFunc2409);
+  } catch (e) {}
+  WxSc.Dict.AddCall(keyFunc,keyResult, async () => {
+    // 接收到的参数会存放到 keyResult 数组中，这里需要的是第一个参数（下标为 0），类型为 SocketEvent
+    WxSc.Dict.Set(keyResult,'0.data.position',false,0);
+    for (let i = 0; i < 9; i++) {
+      let o = WxSc.Dict.Func(keyResult,'0.data.readUnsignedInt');
+      if (o === PET_ID) {
+        WxSc.Refl.Func('com.robot.app.fight.FightManager','fightWithNpc',false,i);
+        return;
+      }
+    }
+    WxSc.Util.SimpleAlarm('等待');
+  });
+  WxSc.Refl.Func(SocketConnection,'addCmdListener',false,MAP_OGRE_LIST,true,keyFunc);
+  
+  WxSc.Dict.AddCall(keyFunc2409,keyResult2409, async () => {
+    const newPetCt = WxSc.Dict.Get(keyResult2409,'0.data.catchTime');
+    // 放入背包后，自动开启特性
+    WxSc.Util.Send(2304, newPetCt,1); // PET_RELEASE
+    WxSc.Refl.Func(PetManager,'upDateByOnce'); // 更新精灵信息
+    await WxSc.Util.DelayAsync(2400);
+    const infos = WxSc.Util.GetBagPetInfos();
+    for (let info of infos) {
+      if (info.catchTime === newPetCt) {
+        if (info.effectList.length === 0) {
+          alert('开启特性失败，已停止运行');
+          throw new Error('开启特性失败');
+        }
+        if (info.effectList[0].effectID === 6 && (info.effectList[0].args === '0 3' || info.effectList[0].args === '6 3')) {
+          // 带电 阴森
+          console.log('+1');
+          if (++caughtNum === catchNum) {
+            try {
+              WxSc.Refl.Func(SocketConnection,'removeCmdListener',false,MAP_OGRE_LIST,true,keyFunc);
+              WxSc.Refl.Func(SocketConnection,'removeCmdListener',false,2409,true,keyFunc2409);
+            } catch (e) {}
+            WxSc.Util.SetIsHidePetFight(false);
+            alert('任务完成，请打开背包查看');
+            return;
+          }
+        } else {
+          console.log(info.effectList[0].effectID, info.effectList[0].args);
+          WxSc.Util.Send(2304, newPetCt,0); // 放回仓库
+        }
+        break;
+      }
+    }
+  });
+  WxSc.Refl.Func(SocketConnection,'addCmdListener',false,2409,true,keyFunc2409);
+})()
+WxSc.Util.ChangeMap(1216);
