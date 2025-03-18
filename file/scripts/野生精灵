@@ -10,8 +10,8 @@ WxSc.OnFirstRound = () => {
   } catch (e) {}
   WxSc.Dict.AddCall(keyFunc,keyResult,() => {
     // 接收到的参数会存放到 keyResult 数组中，这里需要的是第一个参数（下标为 0），类型为 SocketEvent
+    WxSc.Dict.Set(keyResult,'0.data.position',false,0);
     for (let i = 0; i < 9; i++) {
-      WxSc.Dict.Set(keyResult,'0.data.position',false,0);
       let o = WxSc.Dict.Func(keyResult,'0.data.readUnsignedInt');
       if (o === 闪光皮皮) {
         WxSc.Refl.Func('com.robot.app.fight.FightManager','fightWithNpc',false,i);
