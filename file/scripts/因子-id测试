@@ -1,0 +1,4 @@
+const id = 34;
+
+WxSc.Refl.Tmp('com.robot.core.config.xml.NewSuperdesignXmlInfo', 'getRewardInfoById', 'rewardInfo', false,id);
+WxSc.Util.SimpleAlarm(WxSc.Util.GetPetNameByID(WxSc.Dict.Get('rewardInfo', 'MonsterID')))

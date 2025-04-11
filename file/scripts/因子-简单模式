@@ -1,0 +1,270 @@
+const 自动兑换 = true; // 默认自动兑换，如果不想自动兑换，将true改成false
+
+let CONFIGS = [
+  {
+    id: 195, // 绮芒·蝠迪
+    strategies: [
+      {
+        clothes: [1301043,0,1301044,0,1301045,0,1301046,0,1300954,0], // 漆黑天使套装 + 倒吊的假面
+        title: 272, // 吉光凤羽称号
+        pets: [[4648,5000], [2727,2735,3409,3519]], // 出战：星光·鲁斯王、圣谱。备战：西游
+        skill: () => 一直第五,
+      },
+      { skill: () => 一直第五 },
+      { skill: () => 一直第五 },
+      { skill: () => 一直第五 },
+      {
+        clothes: [1300950,0,1300951,0,1300952,0,1300953,0,1300874,0], // 耀世战铠 + 魔界之风目镜
+        title: 300, // 神话称号
+        pets: [[4487], [2727,2735,3409,3519]], // 出战：希可洛。备战：西游
+        skill: () => 一直第一, // 奇镰解放
+      },
+    ]
+  },
+  {
+    id: 198, // 星光·纳多雷
+    扫荡: 7, // 简单：5；困难：6；地狱：7；
+  },
+];
+
+const 一直第五 = () => {
+  WxSc.OnFirstRound = () => {
+    let firstPetCatchtime = WxSc.Util.GetFightingPetCatchTime();
+    for (let pet of WxSc.Util.GetFightingPets()) {
+      if (pet.catchTime === firstPetCatchtime) {
+        WxSc.Util.UseSkill(pet.hideSKill === null ? pet.skillArray[0] : pet.hideSKill.id); // 若无第五，则用一技能
+        break;
+      }
+    }
+  };
+
+  WxSc.OnUseSkill = async (mySkillInfo) => {
+    await WxSc.Util.DelayAsync(WxSc.Const.DelayMs); // 出招间隔太短会掉线，默认是200ms
+    let petID = WxSc.Util.GetFightingPetID();
+    if (mySkillInfo.remainHP !== 0) {
+      let skillList = mySkillInfo.skillList;
+      let i = skillList.length < 5 ? 0 : 4;
+      if (skillList[i][1] > 0) {
+        WxSc.Util.UseSkill(skillList[i][0]);
+      }
+      else {
+        WxSc.Util.UsePetItem10PP();
+      }
+    }
+    else {
+      WxSc.Util.ChangePetByID([]);
+    }
+  };
+
+  WxSc.OnChangePet = (petInfo) => {
+    let skillList = petInfo.skillList;
+    WxSc.Util.UseSkill(skillList[skillList.length < 5 ? 0 : 4][0]);
+  };
+}
+
+const 一直第一 = () => {
+  WxSc.OnFirstRound = () => {
+    let firstPetCatchtime = WxSc.Util.GetFightingPetCatchTime();
+    for (let pet of WxSc.Util.GetFightingPets()) {
+      if (pet.catchTime === firstPetCatchtime) {
+        WxSc.Util.UseSkill(pet.skillArray[0]);
+        break;
+      }
+    }
+  };
+
+  WxSc.OnUseSkill = async (mySkillInfo) => {
+    await WxSc.Util.DelayAsync(WxSc.Const.DelayMs);
+    let petID = WxSc.Util.GetFightingPetID();
+    if (mySkillInfo.remainHP !== 0) {
+      let skillList = mySkillInfo.skillList;
+      let i = 0;
+      if (skillList[i][1] > 0) {
+        WxSc.Util.UseSkill(skillList[i][0]);
+      }
+      else {
+        WxSc.Util.UsePetItem10PP();
+      }
+    }
+    else {
+      WxSc.Util.ChangePetByID([]);
+    }
+  };
+
+  WxSc.OnChangePet = (petInfo) => {
+    let skillList = petInfo.skillList;
+    WxSc.Util.UseSkill(skillList[0][0]);
+  };
+}
+
+function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
+function ReadByte(data) { return data.byteArray[data.position++]; }
+
+async function getMultiValue(arr) {
+  arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
+  let data = {};
+  data.byteArray = await WxSc.Util.SendAsync(46046, arr);
+  data.position = 0;
+  // 将收到的包解析成数组
+  let result = [];
+  let arrayLength = ReadInt(data);
+  for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
+  return result;
+}
+
+async function updateItems(arr) {
+  arr.unshift(arr.length);
+  let data = {};
+  data.byteArray = await WxSc.Util.SendAsync(42399, arr); // MULTI_ITEM_LIST
+  data.position = 0;
+  let result = [];
+  let arrayLength = ReadInt(data);
+  for (let i = 0; i < arrayLength; ++i) {
+    let item = {};
+    item.itemID = ReadInt(data);
+    item.itemNum = ReadInt(data);
+    item.leftTime = ReadInt(data);
+    item._itemLevel = ReadInt(data);
+    item.updateTime = ReadInt(data);
+    result.push(item);
+  }
+  return result;
+}
+
+const subByte = (value, start, length) => {
+  if ((start + length) > 32) {
+    WxSc.Util.log('KTool.subByte 超出 int 上限！')
+    return 0;
+  }
+
+  // 处理超过16位的分段操作
+  if (length > 16) {
+    const low = WxSc.KTool.subByte(value, start, 16);
+    return low + (WxSc.KTool.subByte(value - low, start + 16, length - 16) << 16);
+  }
+
+  // 创建指定位数的掩码并进行位移操作
+  const mask = 0xFFFF >>> (16 - length);
+  return (value >>> (start - 1)) & mask;
+}
+
+const changeBagByIDs = async (ids) => {
+  const bag1 = WxSc.Util.GetBag1();
+  const bag2 = WxSc.Util.GetBag2();
+  let allPet = await WxSc.Util.GetStoragePetsAsync();
+  allPet = allPet.concat(bag1, bag2);
+  let catchTimes = [];
+  catchTimes.push([]);
+  for (const id of ids[0]) {
+    let targets = allPet.filter(pet => pet.id === id);
+    if (targets.length === 0) {
+      throw new Error(`找不到 ID 为 ${id} 的宠物`);
+    }
+    catchTimes[0].push(targets[0].catchTime);
+  }
+  if (ids[1] !== undefined) {
+    catchTimes.push([]);
+    for (const id of ids[1]) {
+      let targets = allPet.filter(pet => pet.id === id);
+      if (targets.length === 0) {
+        throw new Error(`找不到 ID 为 ${id} 的宠物`);
+      }
+      catchTimes[1].push(targets[0].catchTime);
+    }
+  }
+  await WxSc.Util.SetPetBagAsync(...catchTimes);
+}
+
+const fightWithEasyBoss = (id) => {
+  return new Promise(async res => {
+    WxSc.OnFightOver = (overInfo) => {
+      res (overInfo.winnerID != 0);
+    }
+    let data = {}
+    data.byteArray = await WxSc.Util.SendAsync(41282, [id,1]);
+    data.position = 0;
+    const fightCode = ReadByte(data);
+    if (fightCode != 0) {
+      alert(`发起战斗 ${id} 失败，错误码：${fightCode}`);
+      throw new Error('');
+    }
+  });
+}
+
+await WxSc.Util.StateSave('简单因子');
+
+WxSc.Util.SetIsHidePetFight(true);
+const NewSuperdesignXmlInfo = 'com.robot.core.config.xml.NewSuperdesignXmlInfo';
+const SpiritFragmentXmlInfo = 'com.robot.core.config.xml.SpiritFragmentXmlInfo';
+const KEY_REWARD_INFO = 'rewardInfo';
+for (const config of CONFIGS) {
+  // 基本信息
+  WxSc.Refl.Tmp(NewSuperdesignXmlInfo, 'getRewardInfoById', KEY_REWARD_INFO, false,config.id);
+  const MOSTER_ID = WxSc.Dict.Get(KEY_REWARD_INFO, 'MonsterID');
+  const BOSS_NAME = WxSc.Util.GetPetNameByID(MOSTER_ID);
+  const _configureInfo = WxSc.Refl.Func(NewSuperdesignXmlInfo, 'getConfigureInfoById', false,config.id);
+
+  // 兑换
+  const itemId = WxSc.Dict.Get(KEY_REWARD_INFO, 'ItemID')
+  const items = await updateItems([itemId])
+  if (自动兑换 && items.length > 0 && items[0].itemNum >= WxSc.Refl.Func(SpiritFragmentXmlInfo,'getTotalNum', false,MOSTER_ID)) {
+    const bag1 = WxSc.Util.GetBag1();
+    const bag2 = WxSc.Util.GetBag2();
+    WxSc.Util.Send(41413,items[0].itemID,1,0); // 精灵
+    await WxSc.Util.DelayAsync(2000);
+    try {
+      await changeBagByIDs([[MOSTER_ID]]);
+      WxSc.Util.Send(41413,items[0].itemID,2,0);
+      WxSc.Util.Send(41413,items[0].itemID,3,0);
+      alert(`【${BOSS_NAME}】 已兑换`);
+    } catch (e) {
+      alert(`【${BOSS_NAME}】 兑换出错，可能需要精灵的前置形态`);
+    }
+    // 恢复背包
+    await WxSc.Util.SetPetBagAsync(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
+    continue;
+  }
+
+  if (config.扫荡 !== undefined) {
+    for (let i=0; i<3; ++i) WxSc.Util.Send(41283, config.id,config.扫荡);
+    continue;
+  }
+  
+  let va = await getMultiValue([_configureInfo.ProgressValue, _configureInfo.TimeValue]);
+  let _curlv = subByte(va[0], 16, 8); // 数值为 0、2、4、6、8
+  let levelNum = subByte(va[0], 8, 8); // 难度
+  let _surplusNum = _configureInfo.Times - va[1]; // 剩余轮数
+  if (_curlv != 0 || levelNum != 0) ++_surplusNum;
+  for (let i = 0; i < _surplusNum; i++) {
+    do {
+      const index = _curlv / 2;
+      if (config.strategies[index].clothes !== undefined) {
+        WxSc.Util.ChangeCloth(config.strategies[index].clothes);
+      }
+      if (config.strategies[index].title!== undefined) {
+        WxSc.Util.SetTitle(config.strategies[index].title);
+      }
+      if (config.strategies[index].pets !== undefined) {
+        await changeBagByIDs(config.strategies[index].pets);
+      }
+      config.strategies[index].skill()();
+      const win = await fightWithEasyBoss(config.id);
+      WxSc.Util.SimpleAlarm(`【${BOSS_NAME}】 ${_curlv} ${win ? '胜利' : '失败'}`);
+      await WxSc.Util.DelayAsync(16000);
+      va = await getMultiValue([_configureInfo.ProgressValue]);
+      _curlv = subByte(va[0], 16, 8);
+      levelNum = subByte(va[0], 8, 8);
+    } while (_curlv != 0 || levelNum != 0);
+  }
+}
+WxSc.Util.SetIsHidePetFight(false);
+
+// 恢复背包、套装、称号
+await WxSc.Util.StateLoadAsync('简单因子');
+console.log('因子任务完成')
+
+// 参考：
+// https://seer.61.com/module/com/robot/module/app/SpetBaseLvPanel.swf
+// https://seer.61.com/module/com/robot/module/app/SpetBaseBattlePanel.swf
+// https://seer.61.com/module/com/robot/module/app/SpetYiMangFuDiMainPanel.swf
+// https://seer.61.com/dll/RobotCoreDLL.swf
