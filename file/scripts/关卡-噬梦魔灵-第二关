@@ -1,19 +1,5 @@
 // 打开开发者工具，在 console 页面查看指引
 // 制作过程视频：BV1fm8nexENV
-function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
-function ReadByte(data) { return data.byteArray[data.position++]; }
-
-async function getMultiValue(arr) {
-  arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
-  let data = {};
-  data.byteArray = await WxSc.Util.SendAsync(46046, arr);
-  data.position = 0;
-  // 将收到的包解析成数组
-  let result = [];
-  let arrayLength = ReadInt(data);
-  for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
-  return result;
-}
 
 function getBit(p1, p2) { return (p1 >> (p2 - 1)) & 1; }
 function getByte(p1, p2) { return (p1 >> (8 * p2)) & 255; }
@@ -21,7 +7,7 @@ function getByte(p1, p2) { return (p1 >> (8 * p2)) & 255; }
 async function getMapInfo(curMap) {
   let mapObj = {};
 
-  let arr = await getMultiValue([
+  let arr = await WxSc.KTool.getMultiValueAsync([
     103296 + (curMap - 1) / 4,
     103309 + curMap - 1,
     103360 + (curMap - 1) / 32
@@ -63,7 +49,7 @@ async function findPath() {
 
   // 当前地图
   let globalObj = {};
-  let arr = await getMultiValue([103294, 103295]);
+  let arr = await WxSc.KTool.getMultiValueAsync([103294, 103295]);
   globalObj.curMap = arr[0] & 255; // 地图标号（一共 20 张地图，标号从 1 开始）
   globalObj.curEnergy = arr[0] >> 8 & 255; // 灵魂能量
   globalObj.curHasBall = arr[0] >> 16 & 255;

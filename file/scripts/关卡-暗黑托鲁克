@@ -1,37 +1,5 @@
 // 需要有精灵：3437 艾欧丽娅（携带技能疾击之刺、第五技能侍君奉此生）
 function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
-function ReadByte(data) { return data.byteArray[data.position++]; }
-
-async function getMultiValue(arr) {
-  arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
-  let data = {};
-  data.byteArray = await WxSc.Util.SendAsync(46046, arr);
-  data.position = 0;
-  // 将收到的包解析成数组
-  let result = [];
-  let arrayLength = ReadInt(data);
-  for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
-  return result;
-}
-
-async function updateItems(arr) {
-  arr.unshift(arr.length);
-  let data = {};
-  data.byteArray = await WxSc.Util.SendAsync(42399, arr); // MULTI_ITEM_LIST
-  data.position = 0;
-  let result = [];
-  let arrayLength = ReadInt(data);
-  for (let i = 0; i < arrayLength; ++i) {
-    let item = {};
-    item.itemID = ReadInt(data);
-    item.itemNum = ReadInt(data);
-    item.leftTime = ReadInt(data);
-    item._itemLevel = ReadInt(data);
-    item.updateTime = ReadInt(data);
-    result.push(item);
-  }
-  return result;
-}
 
 const 艾欧丽娅 = 3437;
 const 疾击之刺 = 31114;
@@ -74,7 +42,7 @@ let fightWithTlk = (region) => {
 
 while (true) {
   // 剩余挑战次数
-  let arr = await getMultiValue([12045,2065]);
+  let arr = await WxSc.KTool.getMultiValueAsync([12045,2065]);
   if (3 - arr[0] + arr[1] === 0) break;
   // console.log('新一轮挑战');
   for (let i = 0; i < 6; ++i) {
@@ -110,24 +78,35 @@ while (true) {
   }
 }
 
-let items = await updateItems([1700364,1700365]);
-if (items[1].itemNum<100 && items[0].itemNum>150) {
+let items = await WxSc.ItemManager.updateItemsAsync([1700364,1700365]);
+let 黑暗之羽 = 0, 魔化之心 = 0;
+for (const item of items) {
+  switch (item.itemID) {
+    case 1700364:
+      黑暗之羽 = item.itemNum;
+      break;
+    case 1700365:
+      魔化之心 = item.itemNum;
+      break;
+  }
+}
+if (魔化之心<100 && 黑暗之羽>150) {
   // 合成
-  while (items[0].itemNum >= 150) {
+  while (黑暗之羽 >= 150) {
     WxSc.Util.Send(2901, 1768);
-    items[0].itemNum -= 50;
-    ++items[1].itemNum;
+    黑暗之羽 -= 50;
+    魔化之心;
   }
 }
 WxSc.Util.StopAutoFight();
 WxSc.Util.SetIsHidePetFight(false);
 // 恢复背包
 await WxSc.Util.SetPetBagAsync(bag1.map(pet => pet.catchTime),bag2.map(pet => pet.catchTime));
-if (items[0].itemNum>=100 && items[1].itemNum>=100) {
+if (黑暗之羽>=100 && 魔化之心>=100) {
   alert('可以去地图965领取精灵了');
 }
 else {
-  WxSc.Util.SimpleAlarm(`当前进度：${items[0].itemNum}/100 | ${items[1].itemNum}/100`);
+  WxSc.Util.SimpleAlarm(`当前进度：${黑暗之羽}/100 | ${魔化之心}/100`);
 }
 
 // 参考资料：

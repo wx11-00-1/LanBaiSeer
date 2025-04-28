@@ -24,7 +24,7 @@ WxSc.Dict.Set = (key,a,u,v) => WxSc.Refl.Set(WxSc.Const.SocketConnection,`WxOs.$
 WxSc.Dict.Get = (key,a=undefined) => WxSc.Refl.Get(WxSc.Const.SocketConnection,`WxOs.${key}${a ? `.${a}` : ''}`);
 WxSc.Dict.Func = (key,method,...args) => WxSc.Refl.Func(WxSc.Const.SocketConnection,`WxOs.${key}.${method}`,...args);
 WxSc.Dict.Tmp = (key,method,key2,...args) => WxSc.Refl.Tmp(WxSc.Const.SocketConnection,`WxOs.${key}.${method}`,key2,...args);
-WxSc.Dict.TmpAttrib = (key,attrib,type,key2) => document.Client.WxTmpAttrib(key,attrib,type,key2);
+WxSc.Dict.TmpAttrib = (key,attrib,key2) => document.Client.WxTmpAttrib(key,attrib,key2);
 WxSc.Dict.Del = (k) => document.Client.WxDelObj(k);
 
 WxSc.Dict.AddCall = (n,r,f) => {
@@ -38,6 +38,7 @@ WxSc.Const.DelayMs = 200;
 WxSc.Const.PetManager = 'com.robot.core.manager.PetManager';
 WxSc.Const.MainManager = 'com.robot.core.manager.MainManager';
 WxSc.Const.SocketConnection = 'com.robot.core.net.SocketConnection';
+WxSc.Const.KTool = 'com.robot.app.task.petstory.util.KTool';
 
 WxSc.Util.GetBagPetInfos = () => WxSc.Refl.Get(WxSc.Const.PetManager,'allInfos');
 WxSc.Util.GetBag1 = () => WxSc.Refl.Func(WxSc.Const.PetManager,'getBagMap');
@@ -320,4 +321,50 @@ WxSc._in = () => {
     WxSc.OnFightOver(WxSc.Dict.Get('_ovIn','0.data')); 
   });
   WxSc.Refl.Func(WxSc.Const.SocketConnection,'addCmdListener',false,2506,true,'_over'); // FIGHT_OVER
+}
+
+WxSc.KTool = {}
+WxSc.KTool.getMultiValueAsync = async arr => {
+  const keyCallback = 'recvValues', keyResult = 'values';
+  return await new Promise(res => {
+    WxSc.Dict.AddCall(keyCallback,keyResult,() => {
+      WxSc.Dict.Del(keyCallback);
+      const tmp = WxSc.Dict.Get(keyResult,'0');
+      WxSc.Dict.Del(keyResult);
+      // 接收到的所有参数会存放到 keyResult 数组中
+      res(tmp);
+    });
+    WxSc.Refl.Func(WxSc.Const.KTool,'getMultiValue', false,arr, true,keyCallback);
+  });
+}
+WxSc.KTool.subByte = (value,start,length) => WxSc.Refl.Func(WxSc.Const.KTool,'subByte', false,value, false,start, false,length);
+
+WxSc.ItemManager = {}
+WxSc.ItemManager.updateItemsAsync = async arr => {
+  const cmdID = 42399; // MULTI_ITEM_LIST
+  const keyFuncParse = 'items', keyResult = 'itemRes', keySocketEvent = 'socketEvent', keyByteArray = 'itemBA', keySingleItemInfo = 'SingleItemInfo', keyAllItem = 'allItem';
+  WxSc.Dict.Add(keyAllItem,'Array');
+  return await new Promise(res => {
+    WxSc.Dict.AddCall(keyFuncParse,keyResult,() => {
+      // 接收到的参数会存放到 keyResult 数组中
+      // 这里将接收到的 返回值数组 的 第一个成员（下标为 0，类型为 SocketEvent）的 data 属性（类型为 ByteArray）转存到 keyByteArray 中，后续就能作为参数传递给 SingleItemInfo 的构造函数
+      WxSc.Dict.TmpAttrib(keyResult, '0', keySocketEvent);
+      WxSc.Dict.TmpAttrib(keySocketEvent, 'data', keyByteArray);
+      WxSc.Dict.Set(keyByteArray,'position',false,0);
+      const num = WxSc.Dict.Func(keyByteArray,'readUnsignedInt');
+      for (let i = 0; i < num; i++) {
+        WxSc.Dict.Add(keySingleItemInfo, 'com.robot.core.info.userItem.SingleItemInfo', true, keyByteArray);
+        WxSc.Dict.Func(keyAllItem,'push',true,keySingleItemInfo);
+      }
+      const tmp = WxSc.Dict.Get(keyAllItem);
+      WxSc.Dict.Del(keyFuncParse);
+      WxSc.Dict.Del(keyResult);
+      WxSc.Dict.Del(keySocketEvent);
+      WxSc.Dict.Del(keyByteArray);
+      WxSc.Dict.Del(keySingleItemInfo);
+      WxSc.Dict.Del(keyAllItem);
+      res(tmp);
+    });
+    WxSc.Refl.Func('com.robot.core.net.SocketConnection','sendByQueue',false,cmdID, false,[arr.length, ...arr], true,keyFuncParse);
+  });
 }

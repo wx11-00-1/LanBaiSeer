@@ -19,26 +19,7 @@ else if (infos.length != 1) {
 }
 
 // 获取胶囊数量
-function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
-async function updateItems(arr) {
-  arr.unshift(arr.length);
-  let data = {};
-  data.byteArray = await WxSc.Util.SendAsync(42399, arr); // MULTI_ITEM_LIST
-  data.position = 0;
-  let result = [];
-  let arrayLength = ReadInt(data);
-  for (let i = 0; i < arrayLength; ++i) {
-    let item = {};
-    item.itemID = ReadInt(data);
-    item.itemNum = ReadInt(data);
-    item.leftTime = ReadInt(data);
-    item._itemLevel = ReadInt(data);
-    item.updateTime = ReadInt(data);
-    result.push(item);
-  }
-  return result;
-}
-const item = await updateItems([300505]);
+const item = await WxSc.ItemManager.updateItemsAsync([300505]);
 if (item.length === 0) {
   for (let i = 0; i < 6; i++) {
     WxSc.Util.ItemBuy(300505); 

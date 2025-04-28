@@ -1,0 +1,43 @@
+function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
+
+async function GetBagCountmarkAsync() {
+  const cmdID = 46160; // QUERY_COUNTMARK_BY_TYPE_PAGE
+  const batchSize = 100;
+  let startID = 0;
+  const keyFuncParse = 'marks', keyResult = 'markRes', keySocketEvent = 'socketEvent', keyByteArray = 'markBA', keyCountermarkInfo = 'CountermarkInfo', keyAllMark = 'allMark';
+  WxSc.Dict.Add(keyAllMark,'Array');
+  while (true) {
+    const markNum = await new Promise(res => {
+      WxSc.Dict.AddCall(keyFuncParse,keyResult,() => {
+        // 接收到的参数会存放到 keyResult 数组中
+        // 这里将接收到的 返回值数组 的 第一个成员（下标为 0，类型为 SocketEvent）的 data 属性（类型为 ByteArray）转存到 keyByteArray 中，后续就能作为参数传递给 CountermarkInfo 的构造函数
+        WxSc.Dict.TmpAttrib(keyResult, '0', keySocketEvent);
+        WxSc.Dict.TmpAttrib(keySocketEvent, 'data', keyByteArray);
+        WxSc.Dict.Set(keyByteArray,'position',false,0);
+        const num = WxSc.Dict.Func(keyByteArray,'readUnsignedInt') / 14;
+        for (let i = 0; i < num; i++) {
+          WxSc.Dict.Add(keyCountermarkInfo, 'com.robot.core.info.userItem.CountermarkInfo', true, keyByteArray);
+          WxSc.Dict.Func(keyAllMark,'push',true,keyCountermarkInfo);
+        }
+        WxSc.Dict.Del(keyFuncParse);
+        WxSc.Dict.Del(keyResult);
+        WxSc.Dict.Del(keySocketEvent);
+        WxSc.Dict.Del(keyByteArray);
+        WxSc.Dict.Del(keyCountermarkInfo);
+        res(num);
+      });
+      WxSc.Refl.Func('com.robot.core.net.SocketConnection','sendByQueue',false,cmdID, false,[1, 1, startID, batchSize], true,keyFuncParse);
+    });
+    if (markNum < batchSize) break;
+    startID += batchSize;
+    await WxSc.Util.DelayAsync(100);
+  }
+  const result = WxSc.Dict.Get(keyAllMark);
+  WxSc.Dict.Del(keyAllMark);
+  return result;
+}
+
+const arr = await GetBagCountmarkAsync();
+for (let i = 0; i < 10; ++i) {
+  console.log(arr[i]);
+}

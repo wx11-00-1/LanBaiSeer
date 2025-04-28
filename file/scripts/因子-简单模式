@@ -10,14 +10,15 @@ let CONFIGS = [
         pets: [[4648,5000], [2727,2735,3409,3519]], // 出战：星光·鲁斯王、圣谱。备战：西游
         skill: () => 一直第五,
       },
-      { skill: () => 一直第五 },
+      { skill: () => 一直第五 }, // 没有设置 clothes 等属性，表示沿用上一关的套装、阵容
       { skill: () => 一直第五 },
       { skill: () => 一直第五 },
       {
+        // 仅作示例，这关不建议使用这种打法，因为运气不好可能要耗几千回合
         clothes: [1300950,0,1300951,0,1300952,0,1300953,0,1300874,0], // 耀世战铠 + 魔界之风目镜
         title: 300, // 神话称号
         pets: [[4487], [2727,2735,3409,3519]], // 出战：希可洛。备战：西游
-        skill: () => 一直第一, // 奇镰解放
+        skill: () => 一直第一, // 奇镰解放（一般都是把这个技能放首位的吧）
       },
     ]
   },
@@ -97,56 +98,7 @@ const 一直第一 = () => {
   };
 }
 
-function ReadInt(data) { return (data.byteArray[data.position++] << 24) + (data.byteArray[data.position++] << 16) + (data.byteArray[data.position++] << 8) + data.byteArray[data.position++]; }
 function ReadByte(data) { return data.byteArray[data.position++]; }
-
-async function getMultiValue(arr) {
-  arr.unshift(arr.length); // 赛发送数组的特殊格式，首位是数组长度
-  let data = {};
-  data.byteArray = await WxSc.Util.SendAsync(46046, arr);
-  data.position = 0;
-  // 将收到的包解析成数组
-  let result = [];
-  let arrayLength = ReadInt(data);
-  for (let i = 0; i < arrayLength; ++i) { result.push(ReadInt(data)); }
-  return result;
-}
-
-async function updateItems(arr) {
-  arr.unshift(arr.length);
-  let data = {};
-  data.byteArray = await WxSc.Util.SendAsync(42399, arr); // MULTI_ITEM_LIST
-  data.position = 0;
-  let result = [];
-  let arrayLength = ReadInt(data);
-  for (let i = 0; i < arrayLength; ++i) {
-    let item = {};
-    item.itemID = ReadInt(data);
-    item.itemNum = ReadInt(data);
-    item.leftTime = ReadInt(data);
-    item._itemLevel = ReadInt(data);
-    item.updateTime = ReadInt(data);
-    result.push(item);
-  }
-  return result;
-}
-
-const subByte = (value, start, length) => {
-  if ((start + length) > 32) {
-    WxSc.Util.log('KTool.subByte 超出 int 上限！')
-    return 0;
-  }
-
-  // 处理超过16位的分段操作
-  if (length > 16) {
-    const low = WxSc.KTool.subByte(value, start, 16);
-    return low + (WxSc.KTool.subByte(value - low, start + 16, length - 16) << 16);
-  }
-
-  // 创建指定位数的掩码并进行位移操作
-  const mask = 0xFFFF >>> (16 - length);
-  return (value >>> (start - 1)) & mask;
-}
 
 const changeBagByIDs = async (ids) => {
   const bag1 = WxSc.Util.GetBag1();
@@ -206,7 +158,7 @@ for (const config of CONFIGS) {
 
   // 兑换
   const itemId = WxSc.Dict.Get(KEY_REWARD_INFO, 'ItemID')
-  const items = await updateItems([itemId])
+  const items = await WxSc.ItemManager.updateItemsAsync([itemId])
   if (自动兑换 && items.length > 0 && items[0].itemNum >= WxSc.Refl.Func(SpiritFragmentXmlInfo,'getTotalNum', false,MOSTER_ID)) {
     const bag1 = WxSc.Util.GetBag1();
     const bag2 = WxSc.Util.GetBag2();
@@ -230,14 +182,14 @@ for (const config of CONFIGS) {
     continue;
   }
   
-  let va = await getMultiValue([_configureInfo.ProgressValue, _configureInfo.TimeValue]);
-  let _curlv = subByte(va[0], 16, 8); // 数值为 0、2、4、6、8
-  let levelNum = subByte(va[0], 8, 8); // 难度
+  let va = await WxSc.KTool.getMultiValueAsync([_configureInfo.ProgressValue, _configureInfo.TimeValue]);
+  let _curlv = WxSc.KTool.subByte(va[0], 16, 8); // 数值为 0、1、2、3、4
+  let levelNum = WxSc.KTool.subByte(va[0], 8, 8); // 难度（简单模式是 1）
   let _surplusNum = _configureInfo.Times - va[1]; // 剩余轮数
   if (_curlv != 0 || levelNum != 0) ++_surplusNum;
   for (let i = 0; i < _surplusNum; i++) {
     do {
-      const index = _curlv / 2;
+      const index = _curlv;
       if (config.strategies[index].clothes !== undefined) {
         WxSc.Util.ChangeCloth(config.strategies[index].clothes);
       }
@@ -251,9 +203,9 @@ for (const config of CONFIGS) {
       const win = await fightWithEasyBoss(config.id);
       WxSc.Util.SimpleAlarm(`【${BOSS_NAME}】 ${_curlv} ${win ? '胜利' : '失败'}`);
       await WxSc.Util.DelayAsync(16000);
-      va = await getMultiValue([_configureInfo.ProgressValue]);
-      _curlv = subByte(va[0], 16, 8);
-      levelNum = subByte(va[0], 8, 8);
+      va = await WxSc.KTool.getMultiValueAsync([_configureInfo.ProgressValue]);
+      _curlv = WxSc.KTool.subByte(va[0], 16, 8);
+      levelNum = WxSc.KTool.subByte(va[0], 8, 8);
     } while (_curlv != 0 || levelNum != 0);
   }
 }
