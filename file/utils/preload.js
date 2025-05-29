@@ -321,6 +321,8 @@ WxSc._in = () => {
     WxSc.OnFightOver(WxSc.Dict.Get('_ovIn','0.data')); 
   });
   WxSc.Refl.Func(WxSc.Const.SocketConnection,'addCmdListener',false,2506,true,'_over'); // FIGHT_OVER
+
+  if (WxSc.Priv.autoAlarmOk > 0) document.Client.WxAutoAlarmOk(WxSc.Priv.autoAlarmOk);
 }
 
 WxSc.KTool = {}

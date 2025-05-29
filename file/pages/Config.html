@@ -21,13 +21,15 @@
   <input type="checkbox" id="isRandomSkin">随机皮肤</input><br>
   <label for="skinIDs">皮肤列表:</label>
   <input type="text" id="skinIDs"><br><br>
-  <h6>启动时加载窗口</h6>
+  <label for="autoAlarmOk">自动确定:</label>
+  <input type="text" id="autoAlarmOk" placeholder="每次触发的时间间隔，单位为毫秒。0 表示不进行自动确定"><br><br>
+  <h3>启动时加载窗口</h3>
   <input type="checkbox" id="isLoadFormFightHandler">对战助手</input><br>
-  <h6>窗口初始位置</h6>
+  <h3>窗口初始位置</h3>
   <label for="formFightHandlerX">对战助手:</label>
   <input type="number" id="formFightHandlerX">
   <input type="number" id="formFightHandlerY">
-  <h6>配置文件</h6>
+  <h3>配置文件</h3>
   <button id="saveButton">保存</button>
   <button id="backupButton">备份</button>
   <button id="importButton">导入</button><br><br>
@@ -52,6 +54,7 @@
     const isLoadFormFightHandlerInput = document.getElementById('isLoadFormFightHandler');
     const formFightHandlerXInput = document.getElementById('formFightHandlerX');
     const formFightHandlerYInput = document.getElementById('formFightHandlerY');
+    const autoAlarmOkInput = document.getElementById('autoAlarmOk');
 
     // 设置编辑框的值为当前窗口的宽度、高度和缩放
     modeLoginInput.checked = config.isFirstLogin;
@@ -65,6 +68,7 @@
     isLoadFormFightHandlerInput.checked = config.isLoadFormFightHandler;
     formFightHandlerXInput.value = config.x;
     formFightHandlerYInput.value = config.y;
+    autoAlarmOkInput.value = config.autoAlarmOk;
 
     // 保存
     document.getElementById('saveButton').addEventListener('click', () => {
@@ -79,6 +83,7 @@
       config.isLoadFormFightHandler = isLoadFormFightHandlerInput.checked;
       config.x = parseInt(formFightHandlerXInput.value);
       config.y = parseInt(formFightHandlerYInput.value);
+      config.autoAlarmOk = parseInt(autoAlarmOkInput.value);
 
       saveConfig(config);
       alert('保存成功！请重新启动程序');

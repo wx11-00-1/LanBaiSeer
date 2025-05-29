@@ -69,6 +69,7 @@ function createWindow () {
     mainWindow.webContents.executeJavaScript(`
       document.body.style.overflow = 'hidden';
       document.body.style.zoom = ${conf.zoom};
+      WxSc.Priv.autoAlarmOk = ${conf.autoAlarmOk};
     `);
   });
 
