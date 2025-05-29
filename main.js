@@ -37,6 +37,9 @@ const interceptRequestRemote = async (request, callback) => {
       });
     });
   });
+  client.on("error", (error) => {
+    callback({ statusCode: 500, headers: {}, data: Buffer.from(error.message) });
+  });
   client.end();
 };
 
