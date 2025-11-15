@@ -14,7 +14,6 @@ function loadConfig() {
     // 如果配置文件不存在或解析失败，使用默认配置
     return {
       font: '',
-      isFirstLogin: true,
       width: 1280,
       height: 720,
       x: 0,

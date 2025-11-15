@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, protocol, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, protocol, ipcMain, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -9,6 +9,19 @@ const https = require('https');
 // 来源：稀土掘金
 // 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 const interceptRequestRemote = async (request, callback) => {
+  const sess = session.defaultSession;
+
+  // [gpt5] 从 electron session 获取对应 URL 的 cookies，并合并到请求头的 Cookie
+  try {
+    const cookies = await sess.cookies.get({ url: request.url });
+    if (cookies && cookies.length) {
+      const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+      request.headers = { ...(request.headers || {}), Cookie: cookieHeader };
+    }
+  } catch (err) {
+    console.error('[proxy] get cookies error', err);
+  }
+
   const client = https.request(request.url, {
     method: request.method,
     headers: { ...request.headers },
@@ -28,8 +41,39 @@ const interceptRequestRemote = async (request, callback) => {
     response.on("data", (chunk) => {
       body.push(chunk);
     });
-    response.on("end", () => {
+    response.on("end", async () => {
       body = Buffer.concat(body);
+
+      // [gpt5] 将响应中的 Set-Cookie 写回 Electron session
+      try {
+        const setCookieHeader = response.headers['set-cookie'] || response.headers['Set-Cookie'];
+        if (setCookieHeader) {
+          const cookieArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+          for (const cookieStr of cookieArray) {
+            const parts = cookieStr.split(';').map(p => p.trim());
+            const [nameValue, ...attr] = parts;
+            const [name, ...valParts] = nameValue.split('=');
+            const value = valParts.join('=');
+            const cookieObj = {
+              url: request.url,
+              name,
+              value,
+            };
+            for (const a of attr) {
+              const kv = a.split('=');
+              cookieObj[kv[0]] = kv[1] || true;
+            }
+            try {
+              await sess.cookies.set(cookieObj);
+            } catch (e) {
+              console.error('[proxy] cookie set error', e, cookieObj);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[proxy] handle set-cookie error', e);
+      }
+
       callback({
         statusCode: response.statusCode,
         headers: response.headers,
@@ -234,10 +278,6 @@ app.whenReady().then(() => {
   
   if (conf.isLoadFormFightHandler) fhWindow = formFightHandler();
 
-  // 若开启 Fiddler 功能，无法通过游戏的登录验证
-  // 所以默认是关闭的，用户登录后再手动开启
-  // 如果要登录新的账号，仍要手动关闭
-  if (conf.isFirstLogin) return;
   // 自定义文件协议，用于资源替换
   protocol.interceptBufferProtocol('https', (request, callback) => {
     const url = request.url;

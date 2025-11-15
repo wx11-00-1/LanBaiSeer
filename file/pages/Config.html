@@ -5,10 +5,6 @@
   <title>配置</title>
 </head>
 <body>
-  <label for="modeLogin">微端模式:</label>
-  <input type="checkbox" id="modeLogin">
-  <span style="color: gray; font-size: small;">类似官方微端的原始人体验，首次登录需要在此模式下完成官方的验证；完成账号的首次登录后，可以取消选择此项，开启更多功能</span>
-  <br><br>
   <label for="font">字体:</label>
   <input type="text" id="font"><br>
   <label for="width">宽:</label>
@@ -43,7 +39,6 @@
     const config = loadConfig();
 
     // 获取网页元素
-    const modeLoginInput = document.getElementById('modeLogin');
     const fontInput = document.getElementById('font');
     const widthInput = document.getElementById('width');
     const heightInput = document.getElementById('height');
@@ -56,8 +51,7 @@
     const formFightHandlerYInput = document.getElementById('formFightHandlerY');
     const autoAlarmOkInput = document.getElementById('autoAlarmOk');
 
-    // 设置编辑框的值为当前窗口的宽度、高度和缩放
-    modeLoginInput.checked = config.isFirstLogin;
+    // 设置编辑框的值
     fontInput.value = config.font;
     widthInput.value = config.width;
     heightInput.value = config.height;
@@ -72,7 +66,6 @@
 
     // 保存
     document.getElementById('saveButton').addEventListener('click', () => {
-      config.isFirstLogin = modeLoginInput.checked;
       config.font = fontInput.value;
       config.width = parseInt(widthInput.value);
       config.height = parseInt(heightInput.value);
